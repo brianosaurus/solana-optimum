@@ -1,0 +1,8 @@
+duckdb>=1.0
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14
+python-dotenv>=1.0
+matplotlib>=3.8
+pytest>=8.0
+requests>=2.31  # Solana JSON-RPC client (src/solana.py)

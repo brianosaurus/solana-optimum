@@ -1,0 +1,13 @@
+# Secrets. There should be none in this project (it is read-only research and
+# holds no keys), but never commit a local .env regardless.
+.env
+
+# Local caches: the streamed panel, DuckDB spill files, downloaded raw parquet.
+# `data/raw` in particular can hold ~1.5GB per Xatu day.
+data/
+*.parquet
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

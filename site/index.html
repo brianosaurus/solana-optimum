@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optimum / mump2p — the evidence</title>
+<style>
+  :root{
+    --surface:#fcfcfb; --surface-2:#f2f1ee; --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#8a887f;
+    --treated:#eb6834; --control:#2a78d6; --rule:#e4e2dc;
+    --warn-bg:#fff7e0; --warn-edge:#c98500; --warn-ink:#5c4a00;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface:#1a1a19; --surface-2:#232322; --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8a887f;
+      --treated:#d95926; --control:#3987e5; --rule:#33322f;
+      --warn-bg:#2e2503; --warn-edge:#c98500; --warn-ink:#ffd479;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);
+       font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:920px;margin:0 auto;padding:2.5rem 1.25rem 5rem}
+  h1{font-size:1.9rem;line-height:1.2;margin:.2rem 0 .4rem}
+  h2{font-size:1.25rem;margin:2.8rem 0 .6rem;padding-top:1.2rem;border-top:1px solid var(--rule)}
+  h3{font-size:1rem;margin:1.4rem 0 .4rem}
+  p,li{color:var(--ink-2)}
+  strong{color:var(--ink)}
+  a{color:var(--control)}
+  .kicker{color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem}
+  .warn{background:var(--warn-bg);border-left:3px solid var(--warn-edge);color:var(--warn-ink);
+        padding:.7rem .9rem;border-radius:0 6px 6px 0;font-size:.85rem;margin:1rem 0 1.6rem}
+  /* stat tiles: numbers wear ink, never series color */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.6rem;margin:1.4rem 0}
+  .tile{background:var(--surface-2);border-radius:8px;padding:.8rem .9rem}
+  .tile .v{font-size:1.45rem;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.15}
+  .tile .k{font-size:.74rem;color:var(--ink-3);margin-top:.15rem}
+  .tablewrap{overflow-x:auto;margin:.8rem 0}
+  table{border-collapse:collapse;font-size:.85rem;min-width:100%;font-variant-numeric:tabular-nums}
+  th{text-align:right;color:var(--ink-3);font-weight:600;padding:.35rem .6rem;border-bottom:1px solid var(--rule)}
+  td{text-align:right;padding:.3rem .6rem;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+  th:first-child,td:first-child{text-align:left}
+  td.hi{color:var(--ink);font-weight:650}
+  tr.total td{border-top:2px solid var(--rule);color:var(--ink);font-weight:650}
+  .chip{display:inline-block;width:.65em;height:.65em;border-radius:2px;margin-right:.35em;vertical-align:baseline}
+  .chip.t{background:var(--treated)} .chip.c{background:var(--control)}
+  figure{margin:1.2rem 0}
+  figure img{max-width:100%;border-radius:8px;display:block}
+  figcaption{font-size:.78rem;color:var(--ink-3);margin-top:.4rem}
+  .foot{font-size:.78rem;color:var(--ink-3);margin-top:3rem;border-top:1px solid var(--rule);padding-top:1rem}
+  code{background:var(--surface-2);padding:.05rem .3rem;border-radius:4px;font-size:.85em}
+  #live .v{color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Independent analysis · public data · Ethereum</div>
+  <h1>What is faster block propagation actually worth?</h1>
+  <p>A measurement study of Optimum's <strong>mump2p</strong> claim, built entirely from
+     public Xatu / MEV-relay data: the causal physics of the 4-second attestation deadline
+     on mainnet, a priced counterfactual of adoption, and a deployment event study on
+     <strong>Hoodi — the only network where mump2p actually runs</strong>.</p>
+
+  <div class="warn"><strong>Every dollar figure on this page is a modelled counterfactual, not revenue.</strong>
+    mump2p is not deployed on Ethereum mainnet; nobody is earning any of this today. Figures show what an
+    operator <em>would</em> gain if a propagation accelerator delivering the stated speedup were live —
+    and, for the dominant MEV channel, only if the operator also re-tunes its block-publication timing.</div>
+
+  <div class="tiles">
+    <div class="tile"><div class="v">−25 pp</div><div class="k">correct-head votes lost the instant a block crosses the 4s deadline (mainnet, 216k slots)</div></div>
+    <div class="tile"><div class="v">$35.10</div><div class="k">modelled uplift per validator / year at the vendor's 6× claim</div></div>
+    <div class="tile"><div class="v">40–55%</div><div class="k">adoption sweet spot — value peaks then cannibalises itself</div></div>
+    <div class="tile"><div class="v">none</div><div class="k">detectable mump2p effect on Hoodi, its only deployed network</div></div>
+  </div>
+
+  <h2>1 · The deployment study (the DiD) — Hoodi vs a never-treated control</h2>
+  <p>The study everyone would want — a staggered difference-in-differences of mump2p adoption on
+     mainnet — is <strong>impossible</strong>: all seven partner operators were named in a single
+     press release (2025-06-24), the product never left testnet, and two of the seven never
+     publicly claimed adoption at all. There is no staggering and no treatment in mainnet data.</p>
+  <p>But mump2p <em>did</em> deploy on the <span class="chip t"></span><strong>Hoodi</strong> testnet
+     ("rolling out this summer"; first vendor results 2025-09-23). So we ran the honest version:
+     487 network-days of daily propagation physics, Hoodi against
+     <span class="chip c"></span><strong>Sepolia</strong> — same clients, same forks, no mump2p —
+     scanning for a structural break instead of assuming a date.</p>
+
+  <figure>
+    <img src="event_study.png" alt="Daily median transit for Hoodi and Sepolia, June 2025 to January 2026, with the mump2p announcement and first-results dates marked; lower panel shows the Hoodi-minus-Sepolia difference">
+    <figcaption>7-day rolling median network transit. Dashed line: mump2p announced (2025-06-24). Dotted: first published Hoodi results (2025-09-23).</figcaption>
+  </figure>
+
+  <div class="tablewrap"><table>
+    <tr><th>month (2025)</th><th><span class="chip t"></span>Hoodi transit (ms)</th><th><span class="chip c"></span>Sepolia transit (ms)</th><th>Hoodi − Sepolia</th></tr>
+    <tr><td>June</td><td>590</td><td>1,453</td><td>−863</td></tr>
+    <tr><td>July</td><td>700</td><td>1,656</td><td>−956</td></tr>
+    <tr><td>August (deployment window)</td><td class="hi">2,019</td><td>1,350</td><td class="hi">+669</td></tr>
+    <tr><td>September (first results published)</td><td class="hi">1,970</td><td>1,700</td><td class="hi">+270</td></tr>
+    <tr><td>October</td><td>434</td><td>544</td><td>−110</td></tr>
+    <tr><td>Nov–Jan</td><td>534–812</td><td>308–459</td><td>+75–402</td></tr>
+  </table></div>
+
+  <p><strong>Findings.</strong></p>
+  <ul>
+    <li><strong>No positive mump2p signature exists.</strong> The best break in Hoodi's transit
+        (−56%, 2025-09-29) is matched three days later on the untreated control — harder (−72%) and
+        cleaner (r² 0.84 vs 0.34). It is a common shock (the Fusaka client-release window plus sentry
+        churn), not a treatment effect. Every clean break in eight months belongs to the network
+        <em>without</em> mump2p.</li>
+    <li><strong>During the deployment window the treated network got worse.</strong> Hoodi's transit
+        tripled Aug 1 – Oct 1 in a clean square pulse while the control stayed flat — with stable sentry
+        composition, so it is not an observation artifact. We cannot attribute the degradation to any
+        specific experiment; we note only that the vendor's "6× vs gossipsub" benchmark was captured
+        inside this window, against Hoodi's worst gossipsub conditions of the entire study period.</li>
+    <li><strong>The benchmark venue flatters the claim.</strong> Hoodi's baseline gossipsub transit
+        (~1,900 ms in mid-2025) is more than twice mainnet's (~880 ms). A 6× win over a slow testnet
+        baseline implies far less against the fast network the product is actually sold for.</li>
+    <li><strong>On the mump2p network today</strong> (June 2026): the attestation cliff is fully intact
+        (95.9% → 77.4% → 40.5% across the deadline), 2.1% of blocks arrive late — more than double
+        mainnet's 0.93% — and the attestation floor is ~20× worse than mainnet.</li>
+  </ul>
+  <p>This is <em>no evidence of effect</em>, not proof of none — their own methodology says blocks
+     propagated "through both mump2p and Gossipsub simultaneously" (shadow mode), which predicts
+     exactly this null. But for a product whose pitch is propagation speed, leaving no visible trace
+     on its only deployed network is the most load-bearing fact on this page.</p>
+
+  <h2>2 · The mainnet physics: latency is free until it isn't</h2>
+  <p>Attesters must vote 4,000 ms into the slot for whatever head they can see. RANDAO assigns them
+     to slots at random, so exposure to a late block is as-good-as-random — comparing the same
+     validators across early-vs-late blocks is causal, not correlational. From 216,000 mainnet slots:</p>
+
+  <div class="tablewrap"><table>
+    <tr><th>block arrival</th><th>slots</th><th>correct head vote</th></tr>
+    <tr><td>&lt; 1s</td><td>1,363</td><td>99.96%</td></tr>
+    <tr><td>1–2s</td><td>58,549</td><td>99.93%</td></tr>
+    <tr><td>2–3s</td><td>120,027</td><td>99.67%</td></tr>
+    <tr><td>3.0–3.5s</td><td>18,818</td><td>98.82%</td></tr>
+    <tr><td>3.5–4.0s</td><td>13,615</td><td>95.89%</td></tr>
+    <tr><td class="hi">4–5s — past deadline</td><td>1,848</td><td class="hi">67.43%</td></tr>
+    <tr><td class="hi">5–6s</td><td>157</td><td class="hi">22.35%</td></tr>
+    <tr><td class="hi">&gt; 6s</td><td>65</td><td class="hi">0.12%</td></tr>
+  </table></div>
+
+  <figure><img src="dose_response.png" alt="Correct head vote share by block arrival time with the 4 second deadline marked; lower panel shows slot counts per bin on a log scale">
+  <figcaption>The cliff sits exactly at the spec deadline. The density panel shows the effect lives in a thin tail — which is why <em>average</em> latency is the wrong KPI.</figcaption></figure>
+
+  <p>Three facts that reframe the product:</p>
+  <ul>
+    <li><strong>61% of head-vote misses happen on blocks that arrived on time</strong> — they are nodes
+        in the propagation tail. The attester benefit of a faster transport is being pulled out of the
+        tail on <em>every</em> block, not rescuing rare late ones.</li>
+    <li><strong>Late blocks are published late, not transported slowly.</strong> Late blocks' median
+        publication is 3,656 ms (vs 1,811 ms normal); 18% were published after the deadline already.
+        Even an infinitely fast network rescues only ~80% of them; 2× rescues 1.5%.</li>
+    <li><strong>Orphans are timing-game losers.</strong> 188 orphaned blocks in 30 days; hazard is
+        0.04% before the deadline, 9.9% at 4.5–5s, 28.5% at 5–6s. Their transit was barely worse than
+        survivors' (482 vs 322 ms) — their publication was 2.4s later.</li>
+  </ul>
+
+  <h2>3 · What adopting it would be worth (mainnet counterfactual)</h2>
+  <p>Four channels, priced from measured quantities. Only network <em>transit</em> (~331 ms for the
+     median node) is compressible — most of arrival time is the proposer deliberately waiting, which
+     no transport removes. Totals use <code>A + max(B,C) + D</code>: B and C are mutually exclusive
+     uses of the same saved milliseconds.</p>
+
+  <div class="tablewrap"><table>
+    <tr><th>channel</th><th>mechanism</th><th>per validator / yr (6×)</th></tr>
+    <tr><td>A · attester head votes</td><td>my nodes leave the propagation tail on every block</td><td>$2.48</td></tr>
+    <tr><td>B · reorgs avoided</td><td>my late blocks survive fork choice</td><td>$0.14</td></tr>
+    <tr><td class="hi">C · MEV delay budget</td><td class="hi">publish Δ later at the same arrival → strictly better bid</td><td class="hi">$32.76</td></tr>
+    <tr><td>D · bandwidth</td><td>RLNC removes redundant gossip (~3.8 TB/node/yr)</td><td>$0.68 (cloud) / ~$0.01 (metal)</td></tr>
+  </table></div>
+
+  <p><strong>~92% of the value is Channel C.</strong> Measured from relay bids, a block's value nearly
+     doubles across the slot (0.027 → 0.051 ETH) and plateaus at ~3.5s. Optimum is not selling
+     throughput; it is selling <em>delay budget</em> — and only 5.8% of proposals currently capture
+     the plateau safely, so the headroom is real. Per named partner, at the vendor's own 6×:</p>
+
+  <div class="tablewrap"><table>
+    <tr><th>operator</th><th>validators</th><th>A $/yr</th><th>B $/yr</th><th>C $/yr</th><th>D $/yr (cloud)</th><th>total $/yr</th><th>$/day</th></tr>
+    <tr><td>Kiln</td><td>47,500</td><td>117,923</td><td>6,402</td><td>1,397,859</td><td>32,478</td><td class="hi">1,548,260</td><td>4,242</td></tr>
+    <tr><td>P2P.org</td><td>31,862</td><td>79,100</td><td>4,294</td><td>937,654</td><td>21,880</td><td class="hi">1,038,635</td><td>2,846</td></tr>
+    <tr><td>Everstake</td><td>29,300</td><td>72,740</td><td>3,949</td><td>862,258</td><td>20,171</td><td class="hi">955,169</td><td>2,617</td></tr>
+    <tr><td>Ebunker</td><td>11,537</td><td>28,642</td><td>1,555</td><td>339,518</td><td>7,863</td><td class="hi">376,023</td><td>1,030</td></tr>
+    <tr><td>InfStones</td><td>11,500</td><td>28,550</td><td>1,550</td><td>338,429</td><td>7,863</td><td class="hi">374,842</td><td>1,027</td></tr>
+    <tr><td>Blockdaemon</td><td>10,788</td><td>26,782</td><td>1,454</td><td>317,476</td><td>7,521</td><td class="hi">351,779</td><td>964</td></tr>
+    <tr><td>Luganodes</td><td>5,250</td><td>13,034</td><td>708</td><td>154,500</td><td>3,419</td><td class="hi">170,953</td><td>468</td></tr>
+    <tr class="total"><td>all seven</td><td>147,737</td><td>366,770</td><td>19,911</td><td>4,347,694</td><td>100,854</td><td>4,815,318</td><td>13,193</td></tr>
+  </table></div>
+  <p style="font-size:.8rem">Assumptions: ETH $1,805.50 · post-Pectra set (40.72M ETH / 880,550 validators, avg 46.2 ETH)
+     · 500 keys/node for D · scenarios at 3× and 2× run ~$27 and ~$21 per validator/yr. Channel C pays
+     <em>only</em> if the operator re-tunes publication timing; install-and-change-nothing earns ~$2–3.</p>
+
+  <h2>4 · The adoption curve has a sweet spot</h2>
+  <p>Channel C needs receivers (a proposer can only delay safely once ~40% of attesters get blocks fast
+     — the proposer-boost threshold) and decays as adopting predecessors steal the same flow. Per-adopter
+     value = <code>C × min(1, α/40%) × (1−α)</code>:</p>
+
+  <div class="tablewrap"><table>
+    <tr><th>adoption</th><th>per adopter $/yr</th><th>non-adopter $/yr</th><th>adopt-vs-not spread</th><th>all adopters $M/yr</th></tr>
+    <tr><td>5%</td><td>6.66</td><td>−0.18</td><td>6.16</td><td>0.3</td></tr>
+    <tr><td>~17% — the seven partners today</td><td>12.54</td><td>−1.66</td><td>13.52</td><td>1.7</td></tr>
+    <tr><td class="hi">40% — per-adopter peak</td><td class="hi">20.82</td><td>−11.77</td><td class="hi">31.91</td><td>7.3</td></tr>
+    <tr><td class="hi">55% — total-value peak</td><td>16.41</td><td>−16.19</td><td>31.91</td><td class="hi">7.95</td></tr>
+    <tr><td>100%</td><td>3.30</td><td>−29.43</td><td>32.05</td><td>2.9</td></tr>
+  </table></div>
+
+  <ul>
+    <li>The seven named partners (16.8% of the network) sit <strong>below the sweet spot</strong> —
+        recruiting more of their competitors would make each of them richer, up to ~40%.</li>
+    <li>The adopt-vs-not spread saturates at ~$32/validator and never decays: late adoption is bought
+        to <em>stop bleeding</em>, not to gain. At 100%, the MEV channel is fully cannibalised and only
+        the public goods remain (~$3.30/validator).</li>
+    <li>Universal adoption doesn't bank the saved milliseconds — it spends them: every proposer moves
+        to the wire, and the network gets faster <em>and more fragile</em> simultaneously. The durable
+        social value is protocol headroom (more blobs, shorter slots), which accrues to L2s and users,
+        not operators.</li>
+  </ul>
+
+  <h2>5 · Extrapolating Hoodi onto mainnet: the floor model</h2>
+  <p>The naive transfer — "6× on Hoodi ⇒ 6× on mainnet" — fails on our own measurement:
+     Hoodi's gossipsub baseline is ~2× slower than mainnet's. What an RLNC overlay physically
+     delivers is not a multiplier but an <strong>absolute latency floor</strong> (~150 ms at Hoodi
+     gateways, per the vendor), and since it runs parallel to gossipsub a node takes whichever
+     arrives first: <code>transit = min(observed, floor)</code>. The same floor buys very
+     different multipliers on different networks:</p>
+
+  <div class="tablewrap"><table>
+    <tr><th>floor</th><th>on Hoodi (~1,000 ms baseline)</th><th>mainnet — median node (331 ms)</th><th>mainnet — p90 tail (976 ms)</th></tr>
+    <tr><td>150 ms (vendor's Hoodi figure)</td><td>6.7×</td><td class="hi">2.2×</td><td>6.5×</td></tr>
+    <tr><td>250 ms (geographic realism)</td><td>4.0×</td><td>1.3×</td><td>3.9×</td></tr>
+    <tr><td>400 ms (conservative)</td><td>2.5×</td><td class="hi">0.8× — slower than gossipsub</td><td>2.4×</td></tr>
+  </table></div>
+
+  <p><strong>Mainnet's median node is already near the floor.</strong> At 331 ms typical transit,
+     gossipsub on mainnet is nearly as fast as the overlay claims to be — the headline 6× exists
+     only against slow baselines. What survives the transfer is <em>tail compression</em>: the p90
+     spread (976 ms → floor) that a proposer must cover before spending delay budget. Priced against
+     the 214k-slot mainnet panel:</p>
+
+  <div class="tablewrap"><table>
+    <tr><th>scenario</th><th>A · attester $/val/yr</th><th>C · MEV $/val/yr</th><th>total $/val/yr</th><th>all seven $/yr</th></tr>
+    <tr><td>floor 150 ms</td><td>2.30</td><td>29.77</td><td class="hi">32.06</td><td class="hi">4,736,986</td></tr>
+    <tr><td>floor 250 ms</td><td>1.88</td><td>26.58</td><td>28.46</td><td>4,203,990</td></tr>
+    <tr><td>floor 400 ms</td><td>1.14</td><td>21.67</td><td>22.81</td><td>3,370,498</td></tr>
+    <tr><td style="color:var(--ink-3)">old multiplicative 6× model</td><td style="color:var(--ink-3)">2.48</td><td style="color:var(--ink-3)">32.76</td><td style="color:var(--ink-3)">35.10</td><td style="color:var(--ink-3)">4,815,318</td></tr>
+  </table></div>
+
+  <p style="font-size:.8rem"><strong>Carried caveat:</strong> the 150 ms input is the vendor's
+     gateway-level measurement, captured during the window when Hoodi's own gossipsub was at its
+     study-period worst, and our eight-month event study found no consensus-visible effect on Hoodi
+     at all. This extrapolation prices the claim <em>if it holds at validator clients on mainnet</em> —
+     an upper bound built on an unverified input, not a measurement.</p>
+
+  <h2>6 · Live counterfactual ticker</h2>
+  <p>A tracker on this server polls the mainnet beacon head (NTP-corrected), times every real slot, and
+     accrues the modelled uplift slot-by-slot. Same model, live data:</p>
+  <div class="tiles" id="live">
+    <div class="tile"><div class="v" id="lv-slots">—</div><div class="k">mainnet slots observed</div></div>
+    <div class="tile"><div class="v" id="lv-late">—</div><div class="k">arrived past the 4s deadline</div></div>
+    <div class="tile"><div class="v" id="lv-rate">—</div><div class="k">all-seven modelled run-rate (6×)</div></div>
+  </div>
+  <p style="font-size:.8rem">Full per-operator live view on the <a href="/">dashboard</a> · methods companion: <a href="/optimum/notebook.html">the five-step notebook write-up</a>.</p>
+
+  <div class="foot">
+    <p><strong>Methods & sources.</strong> All data public: ethPandaOps <a href="https://github.com/ethpandaops/xatu-data">Xatu</a>
+       parquet (mainnet, hoodi, sepolia; canonical blocks, sentry block-sighting events, elaborated attestations,
+       committees, MEV relay bid traces & delivered payloads). Mainnet panel 2025-06-01→30 (216,000 slots);
+       Hoodi/Sepolia event panel 2025-06-01→2026-01-31 (487 network-days); MEV accrual curve from relay bid
+       traces; orphan values validated against relay delivered payloads (orphans carry 1.02× average value).
+       Analysis: DuckDB + Python; ~60 unit tests including planted-effect recovery and null-size checks.</p>
+    <p><strong>Stated limitations.</strong> Arrival is a sentry-median, so per-attester measurement error smooths
+       the deadline discontinuity — sharp-RD estimates are bandwidth-sensitive and we lead with the dose-response
+       instead. The 6× speedup is the vendor's testnet claim, not a mainnet measurement (hence 3× and 2× scenarios).
+       Fleet node counts and the 40% safety threshold are stated assumptions. Hoodi results are
+       <em>no evidence of effect</em> under a shadow-mode deployment, not proof of none.</p>
+    <p>Generated from the <code>optimum</code> research pipeline · reproducible end-to-end from public data.</p>
+  </div>
+</main>
+<script>
+(async function () {
+  // One live KPI row, same-origin API. Anchored to server truth on every poll.
+  async function refresh() {
+    try {
+      const r = await fetch('/api/optimum', {cache: 'no-store'});
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!d.available) return;
+      document.getElementById('lv-slots').textContent = d.slots_observed.toLocaleString();
+      document.getElementById('lv-late').textContent = d.late_pct.toFixed(2) + '%';
+      const all = (d.operators || []).find(o => o.operator === 'ALL SEVEN');
+      const sc = all && all.scenarios && all.scenarios['6x'];
+      if (sc) document.getElementById('lv-rate').textContent =
+        '$' + Math.round(sc.usd_per_year).toLocaleString() + '/yr';
+    } catch (e) { /* leave dashes; the page is a report first */ }
+  }
+  refresh();
+  setInterval(refresh, 15000);
+})();
+</script>
+</body>
+</html>

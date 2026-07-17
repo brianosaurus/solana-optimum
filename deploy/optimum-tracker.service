@@ -1,0 +1,31 @@
+[Unit]
+# Live Ethereum mainnet slot tracker feeding the watcher dashboard.
+#
+# Read-only: it polls a public beacon endpoint and writes SQLite. It holds no
+# keys and sends no transactions. What it computes is a MODELLED COUNTERFACTUAL
+# (mump2p is not on mainnet); see optimum/FINDINGS.md.
+Description=Optimum Ethereum propagation-latency tracker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/optimum
+ExecStart=/home/ubuntu/optimum/.venv/bin/python /home/ubuntu/optimum/tracker.py
+Restart=always
+# The public beacon endpoint rate-limits and blips; the tracker backs off and
+# retries internally, but if it ever does die we want it straight back up.
+RestartSec=5
+StandardOutput=append:/home/ubuntu/optimum/data/tracker.log
+StandardError=append:/home/ubuntu/optimum/data/tracker.log
+
+# Hardening: this process has no business writing anywhere but its own data dir.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/ubuntu/optimum/data
+
+[Install]
+WantedBy=multi-user.target

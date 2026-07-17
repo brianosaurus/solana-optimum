@@ -1,0 +1,714 @@
+<title>Solana validator revenue & the value of faster propagation</title>
+<style>
+  :root {
+    --surface: #f7f8f7; --panel: #ffffff; --ink: #16201f; --ink-2: #46504e; --muted: #7c8683;
+    --line: #e3e7e5; --line-2: #d3d9d7; --fixed: #b6c0bc; --fixed-ink: #64706c;
+    --tips: #be7a24; --fees: #0c7c9e; --accent: #0c7c9e;
+    --shadow: 0 1px 2px rgba(20,32,31,.05), 0 8px 24px rgba(20,32,31,.06);
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #0f1416; --panel: #161d20; --ink: #eef3f1; --ink-2: #b3bdba; --muted: #7d8986;
+      --line: #263033; --line-2: #313d40; --fixed: #3a474b; --fixed-ink: #93a09c;
+      --tips: #e6a64f; --fees: #3badc9; --accent: #3badc9;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --surface: #f7f8f7; --panel: #fff; --ink: #16201f; --ink-2: #46504e; --muted: #7c8683;
+    --line: #e3e7e5; --line-2: #d3d9d7; --fixed: #b6c0bc; --fixed-ink: #64706c;
+    --tips: #be7a24; --fees: #0c7c9e; --accent: #0c7c9e;
+    --shadow: 0 1px 2px rgba(20,32,31,.05), 0 8px 24px rgba(20,32,31,.06);
+  }
+  :root[data-theme="dark"] {
+    --surface: #0f1416; --panel: #161d20; --ink: #eef3f1; --ink-2: #b3bdba; --muted: #7d8986;
+    --line: #263033; --line-2: #313d40; --fixed: #3a474b; --fixed-ink: #93a09c;
+    --tips: #e6a64f; --fees: #3badc9; --accent: #3badc9;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased; line-height: 1.5; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: clamp(24px, 5vw, 64px) clamp(16px, 4vw, 40px) 80px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ""; width: 26px; height: 2px; background: var(--accent); }
+  h1 { font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; letter-spacing: -.02em; margin: 0 0 16px;
+    text-wrap: balance; font-weight: 680; }
+  .lede { font-size: clamp(16px, 1.6vw, 18px); color: var(--ink-2); max-width: 64ch; margin: 0 0 8px; }
+  .stamp { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-top: 18px; }
+  .stamp b { color: var(--ink-2); font-weight: 600; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line);
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 34px 0 8px; box-shadow: var(--shadow); }
+  .stat { background: var(--panel); padding: 20px 22px; }
+  .stat .k { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 10px; }
+  .stat .v { font-size: clamp(24px, 3vw, 32px); font-weight: 660; letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat .v small { font-size: 15px; font-weight: 560; color: var(--ink-2); letter-spacing: 0; }
+  .stat .s { font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+  @media (max-width: 640px) { .stats { grid-template-columns: 1fr; } }
+  section { margin-top: 44px; }
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+    margin-bottom: 6px; flex-wrap: wrap; }
+  h2 { font-size: 20px; letter-spacing: -.01em; margin: 0; font-weight: 640; }
+  .sub { color: var(--muted); font-size: 14px; margin: 4px 0 22px; max-width: 68ch; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px clamp(18px, 3vw, 28px); box-shadow: var(--shadow); }
+  .comp { display: flex; flex-direction: column; gap: 26px; }
+  .comp .row-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px;
+    color: var(--ink-2); margin-bottom: 9px; }
+  .comp .row-label .tot { font-family: var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stack { display: flex; width: 100%; height: 46px; border-radius: 7px; overflow: hidden; gap: 2px; background: var(--line); }
+  .seg { position: relative; display: flex; align-items: center; padding: 0 12px; min-width: 2px; color: #fff;
+    font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; cursor: default; }
+  .seg.fixed { background: var(--fixed); color: var(--fixed-ink); }
+  .seg.tips { background: var(--tips); } .seg.fees { background: var(--fees); }
+  .caption { font-size: 13.5px; color: var(--ink-2); margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .caption b { color: var(--ink); font-weight: 620; }
+  .controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .legend { display: flex; gap: 16px; align-items: center; }
+  .legend .li { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); font-weight: 500; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .dot.tips { background: var(--tips); } .dot.fees { background: var(--fees); }
+  .seg-group { display: inline-flex; background: var(--surface); border: 1px solid var(--line-2); border-radius: 9px; padding: 3px; gap: 2px; }
+  .seg-group button { font: inherit; font-size: 13px; font-weight: 560; color: var(--muted); background: none; border: 0;
+    padding: 6px 13px; border-radius: 6px; cursor: pointer; font-variant-numeric: tabular-nums; transition: color .12s; }
+  .seg-group button:hover { color: var(--ink); }
+  .seg-group button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .seg-group button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ops { display: flex; flex-direction: column; gap: 13px; margin-top: 6px; }
+  .op { display: grid; grid-template-columns: 172px 1fr; align-items: center; gap: 16px; }
+  .op .name { font-size: 13.5px; text-align: right; color: var(--ink-2); font-weight: 500; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .op .name .n { display: block; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+  .bar-track { display: flex; align-items: center; gap: 2px; height: 26px; position: relative; }
+  .bar { height: 100%; display: flex; align-items: center; border-radius: 3px; min-width: 1px;
+    transition: width .45s cubic-bezier(.4,0,.2,1); cursor: pointer; }
+  .bar.tips { background: var(--tips); border-radius: 3px 0 0 3px; }
+  .bar.fees { background: var(--fees); border-radius: 0 3px 3px 0; }
+  .op .val { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink);
+    font-weight: 600; margin-left: 9px; white-space: nowrap; }
+  .op.total { margin-top: 9px; padding-top: 13px; border-top: 1.5px solid var(--line-2); }
+  .op.total .name { color: var(--ink); font-weight: 680; }
+  .op.total .val { font-weight: 700; font-size: 14px; }
+  .opnote { font-size: 12.5px; color: var(--muted); line-height: 1.65; margin: 16px 2px 0; }
+  .opnote b { color: var(--ink-2); font-weight: 620; }
+  /* adoption-saturation sweep */
+  .sweep { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 860px) { .sweep { grid-template-columns: 1fr; } }
+  .chart { background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px 12px; box-shadow: var(--shadow); }
+  .chart h3 { margin: 0 0 3px; font-size: 14px; font-weight: 640; letter-spacing: -.01em; }
+  .chart .ch-sub { font-size: 12px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; }
+  .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .gl { stroke: var(--line); stroke-width: 1; }
+  .ax { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
+  .ln { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+  .ln2 { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; stroke-linejoin: round; }
+  .ar { fill: var(--accent); opacity: .09; }
+  .sw { width: 18px; height: 0; border-top: 2px solid var(--accent); flex: none; }
+  .sw.dash { border-top: 1.5px dashed var(--muted); }
+  .knobs { display: flex; gap: 26px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .knob { flex: 1 1 260px; }
+  .knob .kh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 7px; }
+  .knob .kn { font-size: 12.5px; font-weight: 620; color: var(--ink); }
+  .knob .kv { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); font-weight: 640;
+    font-variant-numeric: tabular-nums; }
+  .knob .kd { font-size: 11.5px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  .knob input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+  .knob input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .pk { fill: var(--accent); stroke: var(--panel); stroke-width: 2; }
+  .pkl { fill: var(--ink); font-family: var(--font-mono); font-size: 10.5px; font-weight: 640; }
+  .cross { stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; }
+  .hv { fill: var(--accent); opacity: 0; }
+  @media (max-width: 640px) { .op { grid-template-columns: 116px 1fr; gap: 10px; } .op .name { font-size: 12px; } }
+  #tip { position: fixed; z-index: 50; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .1s;
+    background: var(--ink); color: var(--surface); font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+    padding: 9px 11px; border-radius: 7px; box-shadow: 0 6px 20px rgba(0,0,0,.28); max-width: 260px; }
+  #tip .tt-h { font-weight: 700; margin-bottom: 4px; font-family: var(--font-sans); font-size: 12.5px; }
+  #tip .tt-r { display: flex; justify-content: space-between; gap: 14px; }
+  #tip .tt-r span:last-child { font-variant-numeric: tabular-nums; }
+  .foot { margin-top: 40px; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+  .foot b { color: var(--ink-2); font-weight: 600; }
+  code { font-family: var(--font-mono); font-size: .88em; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 5px; color: var(--ink-2); }
+  .warn { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--tips); border: 1px solid var(--tips); border-radius: 999px; padding: 3px 10px; margin-bottom: 20px; }
+
+  /* methodology + robustness appendix */
+  .method { border-top: 2px solid var(--line-2); margin-top: 56px; padding-top: 8px; }
+  .mgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 8px 0 34px; }
+  @media (max-width: 760px) { .mgrid { grid-template-columns: 1fr; } }
+  .mcard { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+  .mcard h3 { margin: 0 0 12px; font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+  .mcard p { margin: 0 0 10px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+  .mcard p:last-child { margin-bottom: 0; }
+  .mcard b { color: var(--ink); font-weight: 620; }
+  .mh { font-size: 16px; font-weight: 640; letter-spacing: -.01em; margin: 30px 0 4px; }
+  .mnote { font-size: 13px; color: var(--muted); margin: 0 0 16px; max-width: 72ch; }
+  .rows { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 1px;
+    background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .rows li { background: var(--panel); padding: 15px 18px; display: grid; grid-template-columns: 132px 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 640px) { .rows li { grid-template-columns: 1fr; gap: 6px; } }
+  .rows .lab { display: flex; flex-direction: column; gap: 7px; }
+  .rows .tag { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink); font-weight: 640; letter-spacing: .01em; }
+  .rows .body { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+  .rows .body b { color: var(--ink); font-weight: 620; }
+  .pill { display: inline-block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+    padding: 2px 8px; border-radius: 999px; width: fit-content; border: 1px solid transparent; }
+  .pill.ok { color: #1f8a5b; border-color: #1f8a5b55; background: #1f8a5b14; }
+  .pill.open { color: var(--tips); border-color: color-mix(in srgb, var(--tips) 45%, transparent); background: color-mix(in srgb, var(--tips) 9%, transparent); }
+  .pill.todo { color: var(--muted); border-color: var(--line-2); }
+  @media (prefers-color-scheme: dark) { .pill.ok { color: #4ecb8f; border-color: #4ecb8f44; background: #4ecb8f14; } }
+  :root[data-theme="dark"] .pill.ok { color: #4ecb8f; border-color: #4ecb8f44; background: #4ecb8f14; }
+  .infer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line);
+    border-radius: 12px; overflow: hidden; margin: 8px 0 30px; }
+  @media (max-width: 640px) { .infer { grid-template-columns: 1fr; } }
+  .infer .cell { background: var(--panel); padding: 16px 18px; }
+  .infer .cell .k { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 8px; }
+  .infer .cell .val { font-family: var(--font-mono); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .infer .cell .val .verdict { font-family: var(--font-sans); font-size: 12px; margin-left: 6px; }
+  .disclaimer { font-size: 12.5px; color: var(--muted); line-height: 1.65; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .disclaimer b { color: var(--ink-2); font-weight: 600; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Solana · propagation economics</p>
+  <h1>What faster block propagation is worth to a Solana validator</h1>
+  <p class="lede">Validator revenue comes from three pools. Only two of them — Jito MEV tips and
+    leader fees — respond to how fast a block propagates. This is where those two stand today, and
+    what a <b>6× faster transmission</b> layer would add through the delay-budget mechanism.</p>
+  <p class="stamp">Live measurement from a Frankfurt Geyser sentry · <b id="span">—</b> of data ·
+    counterfactual modeled at <b id="spd">6×</b>, compressible share <b id="kaHdr">κ=25%</b>,
+    SOL <b id="price">@ $150</b></p>
+  <p class="stamp" style="margin-top:6px">κ=25% is an <b>illustrative midpoint, not a measurement</b> — it is
+    not identified from one vantage point, and every dollar scales linearly in it (at κ=10% the top operator is
+    ~40% of the figure shown). 6× is a free parameter. Both are sliders below.</p>
+
+  <div class="warn">Preliminary — modeled counterfactual, not a quote</div>
+
+  <div class="stats">
+    <div class="stat"><p class="k">Performance-movable revenue</p>
+      <p class="v"><span id="hMov">—</span> <small>SOL / day</small></p>
+      <p class="s">Jito tips + leader fees — the pool faster propagation can move.</p></div>
+    <div class="stat"><p class="k">Fees vs. Jito tips</p>
+      <p class="v" id="hRatio">—</p>
+      <p class="s">Leader fees are the larger channel — and the one usually overlooked.</p></div>
+    <div class="stat"><p class="k">6× uplift · largest operator</p>
+      <p class="v"><span id="hTop">—</span> <small>/ yr</small></p>
+      <p class="s" id="hTopName">Top of the per-operator table below.</p>
+      <p class="s" style="color:var(--tips);font-size:12px;margin-top:6px">⚠ volatile: this figure swung ~4× between the 4-hour and 1-day panels, and 21 hours has not yet seen a full weekday/weekend cycle. Stabilises with panel length.</p></div>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Where validator revenue comes from</h2></div>
+    <p class="sub">Network-wide, per day. Inflation dwarfs the rest and is paid by protocol schedule,
+      not speed — with one exception I cannot yet size: <b>Timely Vote Credits</b> pay inflation in proportion
+      to vote latency, and because the inflation pool is ~8x the movable one, even a small movable share could
+      <b>rival the fee channel</b>. It is unmeasured here (see objection 4), so treat the two coloured slivers
+      as the measured floor of what speed can move, not the ceiling.</p>
+    <div class="card comp">
+      <div>
+        <div class="row-label"><span>All validator revenue</span><span class="tot" id="totFull">—</span></div>
+        <div class="stack" id="stackFull"></div>
+      </div>
+      <div>
+        <div class="row-label"><span>The performance-movable pool, on its own</span><span class="tot" id="totMov">—</span></div>
+        <div class="stack" id="stackMov"></div>
+      </div>
+      <p class="caption" id="caption"></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div><h2>What 6× faster transmission would add, per operator</h2></div>
+      <div class="controls">
+        <div class="legend">
+          <span class="li"><span class="dot tips" id="lgTipsDot"></span><span id="lgTips">Jito tips</span></span>
+          <span class="li"><span class="dot fees" id="lgFeesDot"></span><span id="lgFees">Leader fees</span></span>
+        </div>
+        <div class="seg-group" role="group" aria-label="Time period">
+          <button data-p="day">/ day</button><button data-p="week">/ week</button>
+          <button data-p="month">/ month</button><button data-p="year" aria-pressed="true">/ year</button>
+        </div>
+      </div>
+    </div>
+    <p class="sub" id="opSub"></p>
+    <div class="card"><div class="ops" id="ops"></div></div>
+    <p class="opnote" id="opNote"></p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>What happens when everyone adopts</h2>
+      <div class="legend">
+        <span class="li"><span class="sw"></span><span id="lgRamp">with peer ramp</span></span>
+        <span class="li"><span class="sw dash"></span>no ramp (optimistic)</span>
+      </div>
+    </div>
+    <p class="sub" id="sweepSub"></p>
+    <div class="knobs">
+      <div class="knob">
+        <div class="kh"><span class="kn">κ — compressible share</span><span class="kv" id="kaV">25%</span></div>
+        <input type="range" id="kaR" min="0" max="100" step="1" value="25" aria-label="compressible share">
+        <p class="kd">Share of the observed first-shred→completed window that is actually network time a
+          faster layer could remove. The rest is the leader's own emission span, which no transport touches.
+          <b>Unidentified from one vantage point</b> — every dollar scales linearly in κ.</p>
+      </div>
+      <div class="knob">
+        <div class="kh"><span class="kn">θ — peer threshold</span><span class="kv" id="thV">67%</span></div>
+        <input type="range" id="thR" min="5" max="100" step="1" value="67" aria-label="peer threshold">
+        <p class="kd">Share of stake that must receive on the overlay before a delayed block still roots.
+          67% is Solana's supermajority — a sharp reading. The true knee is lower, since non-overlay nodes
+          have slack; the skip hazard would pin it.</p>
+      </div>
+      <div class="knob">
+        <div class="kh"><span class="kn">φ — genuinely new share</span><span class="kv" id="phV">0%</span></div>
+        <input type="range" id="phR" min="0" max="50" step="1" value="0" aria-label="genuinely new share">
+        <p class="kd">Share of the gain that is new value rather than pulled from the next slot — it sets the
+          floor at saturation. Near zero for pure delay on 400ms slots: a missed transaction lands ~400ms
+          later, it does not vanish.</p>
+      </div>
+    </div>
+    <div class="sweep">
+      <div class="chart">
+        <h3>Per-adopter uplift</h3>
+        <p class="ch-sub">Annual gain for an operator holding 1% of stake, as adoption rises.
+          Falls linearly: the flow you pull forward is increasingly already drained by the adopter
+          ahead of you.</p>
+        <svg id="chA" viewBox="0 0 560 200" role="img" aria-label="Per-adopter uplift against adoption"></svg>
+      </div>
+      <div class="chart">
+        <h3>Network-wide uplift</h3>
+        <p class="ch-sub">All adopters combined. More adopters multiply the base, but each one's gain
+          decays — so the total peaks mid-sweep and returns to zero at saturation.</p>
+        <svg id="chB" viewBox="0 0 560 200" role="img" aria-label="Network-wide uplift against adoption"></svg>
+      </div>
+    </div>
+    <p class="opnote" id="sweepNote"></p>
+  </section>
+
+  <section class="method">
+    <p class="eyebrow">Methodology · counterfactuals · robustness</p>
+    <h2>How this was measured — and what could break it</h2>
+    <div class="card" style="margin:18px 0 26px;border-left:3px solid var(--tips)">
+      <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink);font-weight:640">
+        Read this before the numbers: this is a weaker study than the Ethereum one, and here is exactly how.</p>
+      <p style="margin:0;font-size:13px;color:var(--ink-2);line-height:1.65">
+        This is the Ethereum propagation harness ported in <b>preliminary</b> form. Every axis of evidence
+        quality is a tier below its predecessor, and the gap is not cosmetic:
+        <b>one Geyser vantage point</b> instead of a sentry network — so κ, the compressible share of the
+        observed window, is not identified at all;
+        <b>an estimated slope on realised outcomes</b> instead of a measured relay bid curve — so the delay
+        price is confounded by demand and is an upper bound, not a price;
+        <b>an assumed skip risk</b> instead of a measured orphan hazard — so the cost half of the delay trade
+        is asserted rather than priced;
+        and <b>hours of data</b> instead of a 216k-slot panel. Each gap has a specific closer: a second
+        independent vantage identifies κ; an instrument orthogonal to demand (spillover congestion, shred-loss
+        events, post-skip position-1 slots) identifies the slope; more days fit the hazard and pin θ. Until
+        then the dollar figures are an upper bound on an upper bound, and the honest content of this page is
+        the <b>direction</b> and the <b>machinery</b>, not the magnitude.</p>
+    </div>
+    <p class="sub">Every number above is either measured on-chain or a clearly-labelled counterfactual.
+      Below is the full pipeline, the identifying assumption, the live statistical evidence, and an honest
+      catalogue of the objections plus the tests that answer them. All inputs are public; the pipeline
+      submits no transactions and holds no key.</p>
+
+    <div class="mgrid">
+      <div class="mcard">
+        <h3>1 · Data collection</h3>
+        <p><b>Propagation — and its central weakness.</b> One node in Frankfurt subscribes to a Yellowstone
+          Geyser gRPC slot-status stream. Per slot I log the server timestamp of
+          <code>SLOT_FIRST_SHRED_RECEIVED</code> and <code>SLOT_COMPLETED</code>. Both stamps share a clock,
+          so path delay cancels in the difference — but that cuts both ways: <b>it cancels the network transit
+          I want to measure</b>, leaving a window dominated by the leader's own shred-emission span, which no
+          transport can compress. So this is a <b>streaming window, not transit</b>. Only κ of it is
+          compressible, κ is not identified from one vantage point, and it is a slider above.</p>
+        <p><b>MEV & fees.</b> Jito tips = positive balance deltas on the 8 tip-payment accounts, summed per
+          slot. Leader fees = the block-meta <code>Fee</code> reward (100% of priority + 50% of base fees,
+          post-SIMD-0096). <b>Operators</b> = validators union-find'd by shared vote-withdrawer or website;
+          <code>getLeaderSchedule</code> maps each slot to its leader and 4-slot window position.</p>
+        <p id="mSample">Sample: — of continuous capture.</p>
+      </div>
+      <div class="mcard">
+        <h3>2 · From milliseconds to dollars</h3>
+        <p>The unit is the <b>leader slot</b>. The <b>delay-budget</b> model (ported from the Ethereum
+          propagation study): 6× faster transit saves Δ = transit × (1 − 1/6) ms; a leader can seal Δ ms
+          <b>later</b> at unchanged skip risk, sweeping up more late-arriving revenue.
+          Value/slot = (dRevenue/dms) × Δ, summed over the tips and fees channels, × the operator's
+          leader-slots per year.</p>
+        <p>dRevenue/dms is the <b>within-leader-window</b> slope of revenue on sealing lateness —
+          how much later a block completed than its window position predicts. Comparing a leader's own four
+          consecutive slots holds its stake, hardware, geography and near-term load fixed.</p>
+      </div>
+      <div class="mcard">
+        <h3>3 · The counterfactual, stated</h3>
+        <p>"<b>6×</b>" is a <b>free parameter, not a Solana measurement</b>. Optimum's published 6× is an
+          RLNC overlay measured on Ethereum's Hoodi testnet against a gossipsub baseline — a different
+          protocol on a different chain. Firedancer (a client) and DoubleZero (private fibre) are different
+          categories again. Nobody has published a 6× for Solana shred propagation, so treat it as an input. It also carries the asterisk from the Ethereum study: that 6× was measured against a gossipsub baseline on Hoodi, whose transit ran roughly twice mainnet's — an elevated baseline flatters the multiple.</p>
+        <p>It applies <b>only to the compressible share κ</b> of the observed window — the leader's own
+          emission span is a choice, not a network cost, and no transport removes it.</p>
+        <p>It <b>holds fixed</b> skip risk and everything a leader can't change by networking. It
+          <b>assumes</b> the leader re-tunes its sealing to actually spend the saved budget — a behavioural
+          change; a passive install earns far less. Read the dollars as an <b>order of magnitude</b>, priced
+          at a fixed SOL value, not a quote.</p>
+      </div>
+    </div>
+
+    <h3 class="mh">The live statistical evidence</h3>
+    <p class="mnote">The whole dollar column rests on these two within-window slopes, re-estimated on every
+      daily run with cluster-robust standard errors (clustered by leader) and a wild cluster bootstrap.
+      A slope indistinguishable from zero means the corresponding value is too.</p>
+    <div class="infer" id="infer"></div>
+
+    <h3 class="mh">What can stand against the data</h3>
+    <p class="mnote">The objections I take seriously, each with its current status — stated before anyone
+      else can raise them.</p>
+    <ol class="rows" id="threats">
+      <li><div class="lab"><span class="tag">Demand simultaneity</span><span class="pill open">open</span></div><div class="body"><b>The biggest problem, and why the slope is an upper bound.</b> Within a window, a slot completes later largely <b>because more transactions arrived and got packed</b> — and more transactions mechanically means more fees. A demand shock causes later completion AND higher revenue jointly, so what I estimate is closer to <b>'busy slots pay more'</b> than 'an exogenous millisecond causes revenue'. Window fixed effects hold the leader's stake, hardware and geography fixed; they cannot hold load fixed slot-to-slot. Compute units enter as a control, but CU is the <b>mediator</b> (packing is how delay earns), so it under- or over-corrects rather than solving it. Cluster-robust SEs and the wild bootstrap fix inference on the slope; they do nothing about what the slope <b>is</b>. This is a genuine <b>downgrade from the Ethereum study</b>, where dV/dt came from relay bid traces — an ex-ante auction price, clean of realisation confounds. Closing it needs an instrument orthogonal to demand: congestion spilling over from a different leader, network-level shred-loss events, or position-1 slots following a skipped predecessor.</div></li>
+      <li><div class="lab"><span class="tag">The window is not transit</span><span class="pill open">open</span></div><div class="body"><b>Why κ exists.</b> COMPLETED−FIRST_SHRED shares a clock, so path delay cancels — which also cancels the network transit it was meant to capture. What remains is mostly the <b>leader's own shred-emission span</b>, which no transport compresses. Applying a network speedup to all of it (as the first version of this page did, implicitly κ=100%) contradicts the stated principle that publication timing is not compressible, and inflates every dollar. Only the differential component (path jitter, repair and FEC rounds) is compressible. Separating the two needs leader-side emission timestamps or a multi-vantage sighting spread; one node provides neither.</div></li>
+      <li><div class="lab"><span class="tag">Single vantage point</span><span class="pill open">open</span></div><div class="body">Everything is measured at <b>one</b> Geyser node, not an independent multi-region fleet, so there is no cross-validation and leader geography contaminates the level of the window. Same-clock differencing removes the constant path delay but not the differential component (route changes, congestion drift, my node's own load across the streaming window). The Ethereum study took a sentry median across vantage points; this is n=1. A second independent provider is the top open item — and it is what would identify κ.</div></li>
+      <li><div class="lab"><span class="tag">Vote credits not measured</span><span class="pill open">open</span></div><div class="body">Solana built <b>Timely Vote Credits</b> (SIMD-0033) specifically to reward vote latency: a vote earns max(1, 16 − max(0, latency − 2)) credits, and inflation is paid in proportion to credits. Dismissing the protocol's own latency-incentive channel in a study about the value of latency is a real gap. The <b>bound</b>: a validator already landing votes within the 2-slot grace earns the full 16 and gains nothing from being faster; one improving from 3 slots to 2 gains 1/16 = 6.25% of its inflation. Since inflation dwarfs fees, even a small movable share rivals the fee channel — so this is not safe to wave off. It is measurable from vote-transaction latency on-chain and is the first thing I would add.</div></li>
+      <li><div class="lab"><span class="tag">Skip risk assumed, not measured</span><span class="pill open">open</span></div><div class="body">The delay budget is spent 'at unchanged skip risk' by <b>assumption</b>. On Ethereum the orphan-hazard curve was the honest half of the trade — the measured cost of delaying. Here the cost side is asserted, and with 17 dead forks observed the hazard cannot yet be fit. A delay budget without a measured hazard is half a model, and it is the half that made the Ethereum version credible. It is also what would pin θ.</div></li>
+      <li><div class="lab"><span class="tag">Fixed transaction pool</span><span class="pill open">open</span></div><div class="body">The delay gain is drawn from a pool roughly fixed over any short window: a slot that seals later absorbs fees that would otherwise land in the <b>next</b> slot — a transfer, not creation. Each per-operator bar is a <b>lone-adopter</b> bound; the combined total is <b>not</b> additive network value. The sweep above models this as (1 − α) decay, with φ setting whatever floor survives saturation.</div></li>
+      <li><div class="lab"><span class="tag">A Solana-native lever?</span><span class="pill open">open</span></div><div class="body">Ethereum proposers make a discrete publication decision against a 4s deadline. Solana leaders stream shreds continuously inside a PoH-paced 400ms window. The claimed lever — extend packing into the window's tail before emitting the final shreds — is real but narrower, and it is fair to ask whether the delay-budget abstraction survives the port intact or whether it has been carried over from a scheduler that has the knob in a different form. I have not established the leader-side mechanism, only the reduced-form association.</div></li>
+      <li><div class="lab"><span class="tag">Inference clusters one way</span><span class="pill ok">addressed</span></div><div class="body">Congestion shocks cluster in <b>time</b> across leaders — the same minute hits everyone — so leader-only clustering could understate the errors. <b>I ran the fix</b> (Cameron–Gelbach–Miller two-way, leader × hour). <span id="twoWay">Result pending the next run.</span></div></li>
+      <li><div class="lab"><span class="tag">Operator clustering heuristic</span><span class="pill open">open</span></div><div class="body">Operators are union-found by shared vote-withdrawer or website. Its error mode is <b>false merges</b>: a shared custodian or a hosting provider's site could fuse unrelated operators into one. It also under-groups anyone using per-node cold withdrawers with no published site — so concentration here is a lower bound, never an over-count.</div></li>
+      <li><div class="lab"><span class="tag">Magnitude is volatile</span><span class="pill open">open</span></div><div class="body">The fee slope moved ~15× between the 4-hour and 1-day runs, and the top-operator figure swung ~4×. The <b>direction</b> (fees > tips, positive) is stable; the <b>magnitude</b> is not. The daily re-estimate tracks whether it settles.</div></li>
+      <li><div class="lab"><span class="tag">Behavioural assumption</span><span class="pill todo">to&nbsp;do</span></div><div class="body">The value requires leaders to actually re-tune sealing to spend the budget. A passive install earns far less. The framing is conditional on that behaviour change, and stated as such.</div></li>
+      <li><div class="lab"><span class="tag">Fee = total, not priority</span><span class="pill ok">addressed</span></div><div class="body">The block-meta Fee reward mixes base + priority fees. Priority dominates in the busy periods that drive the estimate; base is a small, near-constant floor.</div></li>
+      <li><div class="lab"><span class="tag">Fixed inputs</span><span class="pill todo">to&nbsp;do</span></div><div class="body">6× is a free parameter, not a Solana measurement. SOL is priced as of the render timestamp in the header. Both scale the result linearly — swap either and every figure rescales.</div></li>
+    </ol>
+
+    <h3 class="mh">How I show it's solid</h3>
+    <p class="mnote">The design and the checks that make the causal reading credible — what's already in
+      place and what's still owed.</p>
+    <ol class="rows" id="checks">
+      <li><div class="lab"><span class="tag">Within-window FE</span><span class="pill ok">addressed</span></div><div class="body">The core identification: comparing a leader's own four consecutive slots strips the cross-sectional confound (busy slots are both slower and richer). The gap between the confounded slope (t≈2.5) and the within-window slope is that bias, and it is large.</div></li>
+      <li><div class="lab"><span class="tag">Cluster-robust + bootstrap</span><span class="pill ok">addressed</span></div><div class="body">Standard errors clustered by leader (650+ clusters), plus a restricted wild cluster bootstrap with Rademacher weights. The p-values above come from that empirical distribution, not a normal approximation that over-rejects.</div></li>
+      <li><div class="lab"><span class="tag">Placebo that fired</span><span class="pill ok">addressed</span></div><div class="body">The position design asks the naive question — do later slots in a leader's window earn more? It came back <b>significantly negative</b> (t −3.9), and I publish it. <b>Why that does not invalidate the main design:</b> position is not a clean proxy for delay, because slot 0 inherits the backlog accumulated across the leader handoff and later slots work a drained queue. That drain is a real nuisance structure — and it is exactly why the sealing variable is <b>defined as the residual from the position-implied schedule</b> (t_completed − window_start − position×400ms), so position is differenced out by construction. The fired placebo documents the nuisance the sealing design already removes, and kills the coarse "position = delay exposure" reading, which is why I do not use it. What it does not do is rescue the sealing slope from the demand confound in objection 1 — that remains open.</div></li>
+      <li><div class="lab"><span class="tag">No-op recovery</span><span class="pill ok">addressed</span></div><div class="body">By construction, at speedup = 1 the counterfactual reproduces the measured baseline exactly — a model that can't recover reality with the treatment off is untrustworthy everywhere.</div></li>
+      <li><div class="lab"><span class="tag">Full-range skip accounting</span><span class="pill ok">addressed</span></div><div class="body">Slots skipped outright never appear in the stream, so skips are counted against the full leader schedule — the skip rate isn't silently undercounted by only-what-I-saw.</div></li>
+      <li><div class="lab"><span class="tag">Second independent vantage</span><span class="pill todo">to&nbsp;do</span></div><div class="body">A non-HelloMoon node in another region, to measure the transit spread and cleanly separate transit from publication delay.</div></li>
+      <li><div class="lab"><span class="tag">Skip-hazard cap</span><span class="pill todo">to&nbsp;do</span></div><div class="body">P(dead-fork | transit) to bound how far the delay budget can be spent before a block is lost — currently underpowered; needs more days.</div></li>
+      <li><div class="lab"><span class="tag">Longer panel</span><span class="pill open">open</span></div><div class="body">More continuous days for Channel-B power and a tighter confidence interval on the fee slope. Collection is ongoing; the page re-estimates daily.</div></li>
+    </ol>
+
+    <p class="disclaimer" id="disclaimer"></p>
+  </section>
+</div>
+
+<div id="tip" role="tooltip"></div>
+
+<script>
+  const DATA = /*__DATA__*/{"network":{"inflation":52518,"fees":4717,"tips":1458},"operators":[],"price":150,"speedup":6,"spanHours":4,"tipSlope":0.00027,"feeSlope":0.00009}/*__END__*/;
+  const N = DATA.network, PRICE = DATA.price;
+  // kappa: compressible share of the observed window. Page-level because EVERY
+  // dollar — operator bars, hero, sweep — scales linearly in it.
+  let KAPPA = 0.25;
+  // THE PRE-REGISTERED RULE, APPLIED IN CODE: 'a slope indistinguishable from
+  // zero means the corresponding value is too'. The wild bootstrap p is the
+  // primary inference; a channel failing it contributes exactly nothing.
+  const LIVE = c => ((DATA.stats && DATA.stats[c] && DATA.stats[c].p != null)
+    ? (DATA.stats[c].p < 0.05 ? 1 : 0) : 1);
+  const TIPS_ON = LIVE('tips'), FEES_ON = LIVE('fees');
+  const DIV = { day: 365, week: 52, month: 12, year: 1 };
+  const fmtInt = v => Math.round(v).toLocaleString();
+  const usd = v => "$" + (v >= 1000 ? Math.round(v).toLocaleString() : v.toFixed(0));
+  const usdC = v => v >= 1e6 ? "$" + (v/1e6).toFixed(2) + "M" : usd(v);
+  const clean = g => /^[1-9A-HJ-NP-Za-km-z]{20,}$/.test(g)
+    ? { name: "anon operator", n: g.slice(0,8) + "…" }
+    : { name: g.replace(/\s*\|\s*/g, " · "), n: "" };
+
+  // stamp + slopes
+  const hrs = DATA.spanHours;
+  document.getElementById("span").textContent = hrs >= 24 ? (hrs/24).toFixed(1) + " days" : "~" + Math.round(hrs) + " h";
+  document.getElementById("spd").textContent = DATA.speedup + "×";
+  document.getElementById("price").textContent = "@ $" + PRICE;
+
+  // hero
+  const mov = N.fees + N.tips;
+  document.getElementById("hMov").textContent = fmtInt(mov);
+  document.getElementById("hRatio").textContent = (N.fees / N.tips).toFixed(1) + "×";
+  const topOp = DATA.operators.reduce((a,b) => (b.up_tips_sol_yr+b.up_fees_sol_yr) > (a.up_tips_sol_yr+a.up_fees_sol_yr) ? b : a, DATA.operators[0]);
+  if (topOp) {
+    document.getElementById("hTop").textContent = usdC((topOp.up_tips_sol_yr*TIPS_ON+topOp.up_fees_sol_yr*FEES_ON)*KAPPA*PRICE);
+    document.getElementById("hTopName").textContent = clean(topOp.group).name + " — top of the table below.";
+  }
+
+  // composition
+  function seg(cls, label, val, pct, inside) {
+    const d = document.createElement("div"); d.className = "seg " + cls; d.style.width = pct + "%";
+    d.textContent = inside ? label : "";
+    d.dataset.tip = JSON.stringify({ h: label.split("  ")[0], rows: [[fmtInt(val) + " SOL/day", pct.toFixed(1) + "%"]] });
+    return d;
+  }
+  const tot = N.inflation + N.fees + N.tips;
+  document.getElementById("totFull").textContent = fmtInt(tot) + " SOL / day";
+  document.getElementById("totMov").textContent = fmtInt(mov) + " SOL / day";
+  document.getElementById("stackFull").append(
+    seg("fixed", "Inflation  " + (N.inflation/tot*100).toFixed(1) + "%", N.inflation, N.inflation/tot*100, true),
+    seg("fees", "Fees", N.fees, N.fees/tot*100, false),
+    seg("tips", "Tips", N.tips, N.tips/tot*100, false));
+  document.getElementById("stackMov").append(
+    seg("fees", "Leader fees  " + (N.fees/mov*100).toFixed(0) + "%", N.fees, N.fees/mov*100, true),
+    seg("tips", "Jito tips  " + (N.tips/mov*100).toFixed(0) + "%", N.tips, N.tips/mov*100, true));
+  document.getElementById("caption").innerHTML =
+    "<b>Read:</b> inflation is ~" + (N.inflation/tot*100).toFixed(0) + "% of revenue but the wrong target — it's paid by "
+    + "protocol schedule, not speed. The winnable pool is the " + (mov/tot*100).toFixed(0) + "% on the right, and inside it "
+    + "<b>leader fees (" + (N.fees/mov*100).toFixed(0) + "%) outweigh Jito tips (" + (N.tips/mov*100).toFixed(0) + "%)</b>. "
+    + "Both are candidate delay-budget channels — but this chart shows revenue that <b>exists</b>, not revenue "
+    + "that responds to speed. Whether each one actually pays more when a block is sealed later is a separate, "
+    + "testable question, and it is what the next chart prices" + (TIPS_ON && FEES_ON ? "." : " — currently only "
+    + (FEES_ON ? "fees" : "tips") + " clears the significance bar, so only " + (FEES_ON ? "fees" : "tips")
+    + " earns an uplift there.");
+  document.getElementById("opSub").innerHTML =
+    "Extra revenue from spending the saved transit as sealing delay, at unchanged skip risk — split by channel. "
+    + "Priced at the pooled within-operator delay slope (tips <b>" + DATA.tipSlope.toFixed(5) + "</b>, fees <b>"
+    + DATA.feeSlope.toFixed(5) + "</b> SOL per 100 ms), applied to each operator's own transit and leader-slot rate. "
+    + "These are <b>lone-adopter</b> bounds: the gain is partly pulled from the next slot's transactions, so the "
+    + "combined total is not additive network value — see the methodology below."
+    + ((!TIPS_ON || !FEES_ON) ? "<br><b>The pre-registered rule is binding here:</b> "
+        + [!TIPS_ON ? "the Jito-tips channel prices at <b>$0</b> (wild-p "
+            + (DATA.stats.tips.p).toFixed(3) + ", not distinct from zero)" : null,
+           !FEES_ON ? "the leader-fee channel prices at <b>$0</b> (wild-p "
+            + (DATA.stats.fees.p).toFixed(3) + ", not distinct from zero)" : null]
+          .filter(Boolean).join(" and ")
+        + ", so it contributes nothing to the bars above. <b>That is a statement about the delay mechanism, not "
+        + "about the channel existing:</b> Jito tips are real, measured revenue — they are in the chart above at ~"
+        + Math.round(N.tips).toLocaleString() + " SOL/day. What I cannot show is that <b>sealing later captures more "
+        + "of them</b>, so the rule prices that uplift at zero rather than let an insignificant slope earn money. "
+        + "A slope indistinguishable from zero means the value is too."
+      : "");
+  const _span = hrs >= 24 ? (hrs/24).toFixed(1) + " days" : "~" + Math.round(hrs) + " hours";
+  document.getElementById("opNote").innerHTML =
+    "<b>Why these operators?</b> An operator is a group of validators run by one entity — clustered on-chain "
+    + "by shared treasury key (vote-account withdrawer) or website; the starting pool is every staked validator. "
+    + "The <b>" + DATA.operators.length + "</b> shown here are those whose nodes were scheduled as leader and "
+    + "produced at least <b>200 blocks</b> during the " + _span + " capture window — in effect a stake floor, since "
+    + "leader slots scale with stake — then ranked by modelled 6× uplift. Operators that produced fewer blocks, or "
+    + "weren't leader in the window, are excluded; the clustering and its limits are detailed in the methodology below.";
+
+  // operator chart
+  // A channel zeroed by the pre-registered rule must LOOK zeroed, not silently
+  // vanish: an empty legend entry reads as a bug, not as a finding.
+  (function markZeroed() {
+    const mark = (on, dotId, txtId, name) => {
+      if (on) return;
+      const d = document.getElementById(dotId), t = document.getElementById(txtId);
+      if (d) { d.style.background = "transparent"; d.style.border = "1.5px dashed var(--muted)"; }
+      if (t) { t.innerHTML = name + ' <span style="color:var(--muted)">· $0 (rule)</span>'; }
+    };
+    mark(TIPS_ON, "lgTipsDot", "lgTips", "Jito tips");
+    mark(FEES_ON, "lgFeesDot", "lgFees", "Leader fees");
+  })();
+  const opsEl = document.getElementById("ops");
+  let period = "year";
+  function render() {
+    const d = DIV[period];
+    const rows = DATA.operators.map(o => ({ ...o, c: clean(o.group),
+      tips: o.up_tips_sol_yr*TIPS_ON*KAPPA*PRICE/d, fees: o.up_fees_sol_yr*FEES_ON*KAPPA*PRICE/d,
+      total: (o.up_tips_sol_yr*TIPS_ON+o.up_fees_sol_yr*FEES_ON)*KAPPA*PRICE/d })).sort((a,b)=>b.total-a.total);
+    const max = Math.max(...rows.map(r => r.total), 1);
+    opsEl.innerHTML = "";
+    for (const r of rows) {
+      const row = document.createElement("div"); row.className = "op";
+      row.innerHTML = `<div class="name" title="${r.c.name}">${r.c.name}<span class="n">${r.c.n || ("· " + r.n_val + " node" + (r.n_val>1?"s":""))}</span></div>`;
+      const track = document.createElement("div"); track.className = "bar-track";
+      const tb = document.createElement("div"); tb.className = "bar tips"; tb.style.width = (r.tips/max*100) + "%";
+      const fb = document.createElement("div"); fb.className = "bar fees"; fb.style.width = (r.fees/max*100) + "%";
+      tb.dataset.tip = fb.dataset.tip = JSON.stringify({ h: r.c.name, rows: [["Jito tips", usd(r.tips)], ["Leader fees", usd(r.fees)], ["Total / " + period, usd(r.total)]] });
+      const val = document.createElement("span"); val.className = "val"; val.textContent = usd(r.total);
+      track.append(tb, fb, val); row.append(track); opsEl.append(row);
+    }
+    // combined total across the operators shown — its own full-width scale
+    const T = rows.reduce((s,r) => ({ tips: s.tips+r.tips, fees: s.fees+r.fees, total: s.total+r.total }), {tips:0,fees:0,total:0});
+    const trow = document.createElement("div"); trow.className = "op total";
+    trow.innerHTML = `<div class="name">All ${rows.length} shown<span class="n">· combined</span></div>`;
+    const tt = document.createElement("div"); tt.className = "bar-track";
+    const ttb = document.createElement("div"); ttb.className = "bar tips"; ttb.style.width = (T.tips/T.total*100) + "%";
+    const tfb = document.createElement("div"); tfb.className = "bar fees"; tfb.style.width = (T.fees/T.total*100) + "%";
+    ttb.dataset.tip = tfb.dataset.tip = JSON.stringify({ h: `All ${rows.length} operators, combined`, rows: [["Jito tips", usd(T.tips)], ["Leader fees", usd(T.fees)], ["Total / " + period, usd(T.total)]] });
+    const tv = document.createElement("span"); tv.className = "val"; tv.textContent = usd(T.total);
+    tt.append(ttb, tfb, tv); trow.append(tt); opsEl.append(trow);
+  }
+  document.querySelectorAll(".seg-group button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".seg-group button").forEach(x => x.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", "true"); period = b.dataset.p; render();
+  }));
+  render();
+
+  // ---- adoption-saturation sweep ----
+  (function sweep() {
+    const st = DATA.stats || {};
+    const slotsYr = DATA.slotsPerYear || (st.n_slots ? st.n_slots / DATA.spanHours * 24 * 365 : 0);
+    const dRev = (DATA.tipSlope * TIPS_ON + DATA.feeSlope * FEES_ON) / 100; // only channels that survive the rule
+    const windowMs = DATA.medianTransitMs || 350;                    // observed first-shred -> completed span
+    // KAPPA. The observed window is dominated by the leader's own emission span; the
+    // common network path largely cancels in the subtraction. Only kappa of it is
+    // compressible network time. Unidentified at n=1 vantage — hence a knob, not a number.
+    const deltaMs = () => windowMs * KAPPA * (1 - 1 / DATA.speedup); // ms of budget bought
+    const uMaxOf = () => Math.max(0, dRev) * deltaMs();              // SOL per adopter-slot at a -> 0
+    // THE RAMP. mump2p/RLNC is a coded overlay running in shadow mode alongside
+    // gossip: a delayed block only reaches on time the stake that can RECEIVE on
+    // the overlay. A Solana block needs >=2/3 of stake to vote for it to root, so
+    // below theta the delay cannot be spent at all — the benefit is two-sided.
+    // Both knobs are ASSUMPTIONS, exposed rather than buried:
+    //   theta = the peer threshold (ramp knee); phi = the share of the gain that is
+    //   genuinely new rather than pulled forward, which sets the floor at saturation.
+    //   u(a) = u_max * min(1, a/theta) * [phi + (1-phi)(1-a)]
+    let THETA = 0.67, PHI = 0;
+    const ramp = a => Math.min(1, a / THETA);
+    const decay = a => PHI + (1 - PHI) * (1 - a);
+    // per-adopter $/yr per 1% of stake, and network total $/yr — with and without the ramp
+    const perRamp = a => uMaxOf() * ramp(a) * decay(a) * 0.01 * slotsYr * PRICE;
+    const perFlat = a => uMaxOf() * decay(a) * 0.01 * slotsYr * PRICE;
+    const netRamp = a => a * uMaxOf() * ramp(a) * decay(a) * slotsYr * PRICE;
+    const netFlat = a => a * uMaxOf() * decay(a) * slotsYr * PRICE;
+    const fmt = v => v >= 1e6 ? "$" + (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? "$" + Math.round(v / 1e3) + "k" : "$" + Math.round(v);
+
+    const pts = f => Array.from({length: 101}, (_, i) => ({ x: i / 100, y: f(i / 100) }));
+    const argmax = f => { let b = 0; for (let i = 0; i <= 100; i++) if (f(i / 100) > f(b / 100)) b = i; return b / 100; };
+
+    function draw(id, prim, sec, peakAt) {
+      const svg = document.getElementById(id);
+      const W = 560, H = 200, L = 62, R = 14, T = 12, B = 30;
+      const ymax = Math.max(...prim.map(p => p.y), ...sec.map(p => p.y)) * 1.12 || 1;
+      const px = a => L + a * (W - L - R);
+      const py = v => T + (1 - v / ymax) * (H - T - B);
+      const ns = "http://www.w3.org/2000/svg";
+      const mk = (t, at) => { const e = document.createElementNS(ns, t); for (const k in at) e.setAttribute(k, at[k]); return e; };
+      svg.textContent = "";
+      // grid + y labels
+      for (let i = 0; i <= 4; i++) {
+        const v = ymax * i / 4;
+        svg.append(mk("line", {class: "gl", x1: L, x2: W - R, y1: py(v), y2: py(v)}));
+        const t = mk("text", {class: "ax", x: L - 8, y: py(v) + 3.5, "text-anchor": "end"});
+        t.textContent = fmt(v); svg.append(t);
+      }
+      // x labels
+      for (const a of [0, .25, .5, .75, 1]) {
+        const t = mk("text", {class: "ax", x: px(a), y: H - B + 16, "text-anchor": "middle"});
+        t.textContent = Math.round(a * 100) + "%"; svg.append(t);
+      }
+      const xl = mk("text", {class: "ax", x: (L + W - R) / 2, y: H - 2, "text-anchor": "middle"});
+      xl.textContent = "share of stake running the 6x layer"; svg.append(xl);
+      // paths: dashed no-ramp reference behind, solid ramp model in front
+      const path = a => a.map((p, i) => (i ? "L" : "M") + px(p.x).toFixed(1) + " " + py(p.y).toFixed(1)).join(" ");
+      const dP = path(prim);
+      svg.append(mk("path", {class: "ar", d: dP + ` L ${px(1)} ${py(0)} L ${px(0)} ${py(0)} Z`}));
+      svg.append(mk("path", {class: "ln2", d: path(sec)}));
+      svg.append(mk("path", {class: "ln", d: dP}));
+      // peak marker on the ramp model
+      if (peakAt != null) {
+        const pv = prim[Math.round(peakAt * 100)].y;
+        svg.append(mk("circle", {class: "pk", cx: px(peakAt), cy: py(pv), r: 4.5}));
+        const t = mk("text", {class: "pkl", x: px(peakAt), y: py(pv) - 11,
+          "text-anchor": peakAt > .8 ? "end" : "middle"});
+        t.textContent = `peak ${fmt(pv)} @ ${Math.round(peakAt * 100)}%`; svg.append(t);
+      }
+      // hover: crosshair + tooltip
+      const cross = mk("line", {class: "cross", y1: T, y2: H - B});
+      const dot = mk("circle", {class: "hv", r: 4});
+      svg.append(cross, dot);
+      const hit = mk("rect", {x: L, y: T, width: W - L - R, height: H - T - B, fill: "transparent"});
+      svg.append(hit);
+      hit.addEventListener("mousemove", e => {
+        const bb = svg.getBoundingClientRect();
+        const a = Math.min(1, Math.max(0, ((e.clientX - bb.left) / bb.width * W - L) / (W - L - R)));
+        const i = Math.round(a * 100), p = prim[i], s = sec[i];
+        cross.setAttribute("x1", px(p.x)); cross.setAttribute("x2", px(p.x)); cross.style.opacity = 1;
+        dot.setAttribute("cx", px(p.x)); dot.setAttribute("cy", py(p.y)); dot.style.opacity = 1;
+        showTip(e, JSON.stringify({h: Math.round(p.x * 100) + "% adoption", rows: [
+          ["with peer ramp", fmt(p.y)], ["no ramp", fmt(s.y)]]}));
+      });
+      hit.addEventListener("mouseleave", () => { cross.style.opacity = 0; dot.style.opacity = 0; tip.style.opacity = 0; });
+    }
+
+    function redraw() {
+      const aPk = argmax(perRamp), nPk = argmax(netRamp);
+      draw("chA", pts(perRamp), pts(perFlat), aPk);
+      draw("chB", pts(netRamp), pts(netFlat), nPk);
+      document.getElementById("lgRamp").textContent = `with peer ramp (θ=${Math.round(THETA * 100)}%)`;
+      document.getElementById("thV").textContent = Math.round(THETA * 100) + "%";
+      document.getElementById("phV").textContent = Math.round(PHI * 100) + "%";
+      document.getElementById("kaV").textContent = Math.round(KAPPA * 100) + "%";
+      document.getElementById("sweepNote").innerHTML =
+        "<b>The bootstrap trap.</b> With the ramp, the first adopter earns <b>" + fmt(perRamp(0.01)) + "/yr</b> per 1% "
+        + "of stake — against <b>" + fmt(perFlat(0)) + "</b> if the layer worked unilaterally. Nobody rationally goes "
+        + "first, so the network cannot climb to θ where the product starts paying. Per-adopter value peaks at "
+        + fmt(perRamp(aPk)) + " at " + Math.round(aPk * 100) + "% adoption; network value peaks at " + fmt(netRamp(nPk))
+        + "/yr at " + Math.round(nPk * 100) + "%, versus " + fmt(uMaxOf() * slotsYr * PRICE) + " implied by naively "
+        + "summing lone-adopter bars. At saturation the network keeps <b>" + fmt(netRamp(1)) + "/yr</b> — the φ floor, "
+        + "zero unless some of the flow is genuinely new. <b>Every figure here scales linearly in κ</b> ("
+        + Math.round(KAPPA * 100) + "%): the delay budget is only " + deltaMs().toFixed(0) + "ms of the "
+        + windowMs.toFixed(0) + "ms observed window. <b>Which curve applies depends on the product:</b> a coded "
+        + "overlay (mump2p) or a dedicated fabric needs both ends, so the ramp holds; a faster client "
+        + "(Firedancer-style) is unilateral and follows the dashed line.";
+    }
+    document.getElementById("kaR").addEventListener("input", e => { KAPPA = +e.target.value / 100; redraw(); render(); });
+    document.getElementById("thR").addEventListener("input", e => { THETA = +e.target.value / 100; redraw(); });
+    document.getElementById("phR").addEventListener("input", e => { PHI = +e.target.value / 100; redraw(); });
+    redraw();
+
+    document.getElementById("sweepSub").innerHTML =
+      "Two forces act as adoption rises. <b>Cannibalisation:</b> the delay gain is pulled from the next slot, so once "
+      + "other leaders run the layer they drain the pool first. <b>The peer ramp:</b> a coded overlay runs alongside "
+      + "gossip, so a delayed block only reaches on time the stake that can receive on the overlay — below that "
+      + "threshold the delay cannot be spent safely at all. Together: "
+      + "<b>u(a) = u_max × min(1, a/θ) × [φ + (1 − φ)(1 − a)]</b>. Neither θ nor φ is measured here, so both are "
+      + "sliders rather than a number I am pretending to know — drag them and watch how much they carry. The dashed "
+      + "line drops the ramp entirely, for the unilateral case.";
+
+  })();
+
+  // ---- methodology / robustness ----
+  (function method() {
+    const spanTxt = hrs >= 24 ? (hrs/24).toFixed(1) + " days" : "~" + Math.round(hrs) + " hours";
+    const S = DATA.stats || {};
+    const sample = S.n_slots ? `${S.n_slots.toLocaleString()} leader slots · ${S.n_leaders} leaders` : "";
+    document.getElementById("mSample").innerHTML =
+      `Sample: <b>${spanTxt}</b> of continuous capture` + (sample ? ` (${sample}).` : ".");
+
+    // live inference cells
+    const fmtStat = (s, label) => {
+      if (!s || s.slope == null) return `<div class="cell"><p class="k">${label}</p><div class="val">not yet estimated</div></div>`;
+      const sig = (s.p != null && s.p < 0.05);
+      const verdict = s.p == null ? "" :
+        `<span class="verdict" style="color:${sig ? 'var(--fees)' : 'var(--muted)'}">${sig ? '✓ significant' : '— not distinct from 0'}</span>`;
+      const p = s.p == null ? "n/a" : s.p.toFixed(3);
+      return `<div class="cell"><p class="k">${label}</p><div class="val">${s.slope>=0?'+':''}${s.slope.toFixed(5)} SOL/100ms<br>t ${s.t>=0?'+':''}${s.t.toFixed(2)} · wild-p ${p} ${verdict}</div></div>`;
+    };
+    document.getElementById("infer").innerHTML =
+      fmtStat(S.tips, "Jito tips · sealing slope") +
+      fmtStat(S.fees, "Leader fees · sealing slope") +
+      `<div class="cell"><p class="k">Inference</p><div class="val">within-leader-window FE<br>cluster-robust + ${S.bootstrap_reps||0}× wild bootstrap</div></div>`;
+
+    
+    
+    document.getElementById("disclaimer").innerHTML =
+      "<b>Bottom line.</b> This is a counterfactual for a product that isn't deployed: transmission is not 6× faster today, and the dollar figures are conditional on the fee-delay slope being real and on leaders re-tuning to capture it. The robust finding is the <b>direction</b> — that the propagation premium on Solana lives in priority fees, not Jito MEV tips, and that the honest within-operator effect is a fraction of the confounded cross-section. The magnitude will keep moving; every figure here regenerates from the live pipeline each day.";
+  })();
+
+  // tooltip
+  const tip = document.getElementById("tip");
+  function move(e) { const r = tip.getBoundingClientRect(); let x = e.clientX+14, y = e.clientY+14;
+    if (x+r.width > innerWidth-8) x = e.clientX-r.width-14; if (y+r.height > innerHeight-8) y = e.clientY-r.height-14;
+    tip.style.left = x+"px"; tip.style.top = y+"px"; }
+  // hoisted so the sweep charts (declared earlier in source) can call it at hover time
+  function showTip(e, json) {
+    const d = JSON.parse(json);
+    tip.innerHTML = `<div class="tt-h">${d.h}</div>` + d.rows.map(r => `<div class="tt-r"><span>${r[0]}</span><span>${r[1]}</span></div>`).join("");
+    tip.style.opacity = "1"; move(e);
+  }
+  document.addEventListener("mouseover", e => { const t = e.target.closest("[data-tip]"); if (t) showTip(e, t.dataset.tip); });
+  document.addEventListener("mousemove", e => { if (tip.style.opacity === "1") move(e); });
+  document.addEventListener("mouseout", e => { if (e.target.closest("[data-tip]")) tip.style.opacity = "0"; });
+</script>
