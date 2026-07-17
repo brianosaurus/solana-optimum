@@ -367,7 +367,8 @@
       "Bash(node --check /tmp/s11.js)",
       "Bash(scp -q src/estimators/channel_c.py src/estimators/inference.py frankfurt:/home/ubuntu/solana-optimum/src/estimators/)",
       "Bash(node --check /tmp/t16.js)",
-      "Bash(node --check /tmp/t17.js)"
+      "Bash(node --check /tmp/t17.js)",
+      "Bash(node --check /tmp/s12.js)"
     ],
     "additionalDirectories": [
       "/Users/brian/src/LeeroyChainkins/optimum",

@@ -1,0 +1,6 @@
+# Test-only dependencies. The runtime (requirements.txt) stays lean; these are
+# used solely to cross-validate the hand-rolled estimators in
+# tests/test_estimators_vs_libraries.py against trusted reference implementations.
+-r requirements.txt
+statsmodels>=0.14
+scipy>=1.11
