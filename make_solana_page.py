@@ -32,8 +32,15 @@ def _open(f):
     return gzip.open(f, "rt") if f.endswith(".gz") else open(f)
 
 
-def rate_sol_per_day(files, key: str) -> float:
-    """SOL/day for a stream, over ITS OWN recv-time span (not the panel span)."""
+def rate_sol_per_day(files, key: str, keep_files: int = 3) -> float:
+    """SOL/day for a stream, over ITS OWN recv-time span (not the panel span).
+
+    Only the newest `keep_files` daily files are read. The rate is a current
+    per-day figure, so history adds cost without adding information: by August
+    the collectors held ~26 days and a render spent minutes re-parsing them to
+    compute a number the last 3 days already pin down.
+    """
+    files = sorted(files)[-keep_files:]
     lo = hi = None
     lam = 0
     for f in files:
@@ -60,7 +67,7 @@ def total_active_stake_sol(rpc: str) -> float:
 
 def sol_price_usd(fallback: float) -> float:
     """Live SOL/USD. Env SOL_PRICE_USD wins (so a run can pin it); else CoinGecko;
-    else the fallback carried in the graph. Only affects the USD display — every
+    else the fallback carried in the graph. Only affects the USD display, every
     SOL-denominated figure is price-independent."""
     env = os.getenv("SOL_PRICE_USD")
     if env:
@@ -92,7 +99,7 @@ def prerender(html: str, d: dict) -> str:
     reader mode or a PDF seeing a wall of em-dashes under the words "live
     measurement". JS still re-renders these on load (identically) and drives the
     interactive parts; this is the server-side default, not a duplicate source of
-    truth — both read the same DATA block.
+    truth, both read the same DATA block.
     """
     n, price = d["network"], d["price"]
     st_n = (d.get("stats") or {}).get("n_slots")
@@ -103,20 +110,20 @@ def prerender(html: str, d: dict) -> str:
     tot = n["inflation"] + mov
     ops = d["operators"]
     sub = {
-        '<b id="span">—</b>': f'<b id="span">{span}</b>',
+        '<b id="span">, </b>': f'<b id="span">{span}</b>',
         '<b id="spd">6×</b>': f'<b id="spd">{d["speedup"]:g}×</b>',
         '<b id="price">@ $150</b>': f'<b id="price">@ ${price:g}</b>',
         '<b id="kaHdr">κ=25%</b>': f'<b id="kaHdr">κ={KAPPA_DEFAULT:.0%}</b>',
-        '<p id="mSample">Sample: — of continuous capture.</p>':
+        '<p id="mSample">Sample: pending render.</p>':
             f'<p id="mSample">Sample: <b>{span}</b> of continuous capture'
             + (f' ({st_n:,} leader slots · {st_l} leaders).' if st_n else '.') + '</p>',
-        '<span id="hMov">—</span>': f'<span id="hMov">{mov:,.0f}</span>',
-        '<p class="v" id="hRatio">—</p>':
+        '<span id="hMov">, </span>': f'<span id="hMov">{mov:,.0f}</span>',
+        '<p class="v" id="hRatio">, </p>':
             f'<p class="v" id="hRatio">{n["fees"]/n["tips"]:.1f}×</p>' if n["tips"] else "",
-        '<span id="hTop">—</span>': "",
-        '<span class="tot" id="totFull">—</span>':
+        '<span id="hTop">, </span>': "",
+        '<span class="tot" id="totFull">, </span>':
             f'<span class="tot" id="totFull">{tot:,.0f} SOL / day</span>',
-        '<span class="tot" id="totMov">—</span>':
+        '<span class="tot" id="totMov">, </span>':
             f'<span class="tot" id="totMov">{mov:,.0f} SOL / day</span>',
     }
     # the pre-registered rule, server-side too: a channel whose slope is not
@@ -128,12 +135,12 @@ def prerender(html: str, d: dict) -> str:
     t_on, f_on = live("tips"), live("fees")
     if ops:
         top = max(ops, key=lambda o: o["up_tips_sol_yr"]*t_on + o["up_fees_sol_yr"]*f_on)
-        sub['<span id="hTop">—</span>'] = (
+        sub['<span id="hTop">, </span>'] = (
             f'<span id="hTop">{_usd((top["up_tips_sol_yr"]*t_on+top["up_fees_sol_yr"]*f_on)*KAPPA_DEFAULT*price)}</span>')
     for k, v in sub.items():
         if v:
             html = html.replace(k, v)
-    # the inference cells — the section a reviewer reads first
+    # the inference cells, the section a reviewer reads first
     st = d.get("stats") or {}
     cells = []
     for key, label in (("tips", "Jito tips · sealing slope"), ("fees", "Leader fees · sealing slope")):
@@ -143,7 +150,7 @@ def prerender(html: str, d: dict) -> str:
             continue
         sig = s.get("p") is not None and s["p"] < 0.05
         col = "var(--fees)" if sig else "var(--muted)"
-        verdict = "✓ significant" if sig else "— not distinct from 0"
+        verdict = "✓ significant" if sig else "not distinct from 0"
         p = "n/a" if s.get("p") is None else f"{s['p']:.3f}"
         cells.append(
             f'<div class="cell"><p class="k">{label}</p><div class="val">'
@@ -154,7 +161,7 @@ def prerender(html: str, d: dict) -> str:
     html = html.replace('<div class="infer" id="infer"></div>',
                         '<div class="infer" id="infer">' + "".join(cells) + "</div>")
 
-    # two-way clustering result, rendered from the run rather than hardcoded —
+    # two-way clustering result, rendered from the run rather than hardcoded;
     # a stale t-stat in an objection is worse than no objection.
     tw = (st.get("two_way") or {})
     twf, twt = tw.get("fees"), tw.get("tips")
@@ -170,7 +177,7 @@ def prerender(html: str, d: dict) -> str:
                  + " the correction my own catalogue demanded. "
                  f'<b>The caveat I will not bury:</b> this panel yields only <b>{twf["n_hours"]} '
                  f'hour-clusters</b>, which is few for asymptotics in that dimension, so it is '
-                 "reassurance rather than proof — a multi-day panel is the real test.")
+                 "reassurance rather than proof, a multi-day panel is the real test.")
         html = html.replace(
             '<span id="twoWay">Result pending the next run.</span>',
             f'<span id="twoWay">{bits}</span>')

@@ -180,45 +180,45 @@
 <div class="wrap">
   <p class="eyebrow">Solana · propagation economics</p>
   <h1>What faster block propagation is worth to a Solana validator</h1>
-  <p class="lede">Validator revenue comes from three pools. Only two of them — Jito MEV tips and
-    leader fees — respond to how fast a block propagates. This is where those two stand today, and
+  <p class="lede">Validator revenue comes from three pools. Only two of them (Jito MEV tips and
+    leader fees) respond to how fast a block propagates. This is where those two stand today, and
     what a <b>6× faster transmission</b> layer would add through the delay-budget mechanism.</p>
-  <p class="stamp">Live measurement from a Frankfurt Geyser sentry · <b id="span">—</b> of data ·
+  <p class="stamp">Live measurement from a Frankfurt Geyser sentry · <b id="span">, </b> of data ·
     counterfactual modeled at <b id="spd">6×</b>, compressible share <b id="kaHdr">κ=25%</b>,
     SOL <b id="price">@ $150</b></p>
-  <p class="stamp" style="margin-top:6px">κ=25% is an <b>illustrative midpoint, not a measurement</b> — it is
+  <p class="stamp" style="margin-top:6px">κ=25% is an <b>illustrative midpoint, not a measurement</b>: it is
     not identified from one vantage point, and every dollar scales linearly in it (at κ=10% the top operator is
     ~40% of the figure shown). 6× is a free parameter. Both are sliders below.</p>
 
-  <div class="warn">Preliminary — modeled counterfactual, not a quote</div>
+  <div class="warn">Preliminary: modeled counterfactual, not a quote</div>
 
   <div class="stats">
     <div class="stat"><p class="k">Performance-movable revenue</p>
-      <p class="v"><span id="hMov">—</span> <small>SOL / day</small></p>
-      <p class="s">Jito tips + leader fees — the pool faster propagation can move.</p></div>
+      <p class="v"><span id="hMov">, </span> <small>SOL / day</small></p>
+      <p class="s">Jito tips + leader fees, the pool faster propagation can move.</p></div>
     <div class="stat"><p class="k">Fees vs. Jito tips</p>
-      <p class="v" id="hRatio">—</p>
-      <p class="s">Leader fees are the larger channel — and the one usually overlooked.</p></div>
+      <p class="v" id="hRatio">, </p>
+      <p class="s">Leader fees are the larger channel, and the one usually overlooked.</p></div>
     <div class="stat"><p class="k">6× uplift · largest operator</p>
-      <p class="v"><span id="hTop">—</span> <small>/ yr</small></p>
+      <p class="v"><span id="hTop">, </span> <small>/ yr</small></p>
       <p class="s" id="hTopName">Top of the per-operator table below.</p>
-      <p class="s" style="color:var(--tips);font-size:12px;margin-top:6px">⚠ volatile: this figure swung ~4× between the 4-hour and 1-day panels, and 21 hours has not yet seen a full weekday/weekend cycle. Stabilises with panel length.</p></div>
+      <p class="s" style="color:var(--tips);font-size:12px;margin-top:6px">⚠ preliminary: the fee slope settled after swinging across the first single-day panels (the 48-hour window now averages two full day/night cycles) but the magnitude still scales with κ and the SOL price. Read it as order-of-magnitude.</p></div>
   </div>
 
   <section>
     <div class="sec-head"><h2>Where validator revenue comes from</h2></div>
     <p class="sub">Network-wide, per day. Inflation dwarfs the rest and is paid by protocol schedule,
-      not speed — with one exception I cannot yet size: <b>Timely Vote Credits</b> pay inflation in proportion
+      not speed, with one exception I cannot yet size: <b>Timely Vote Credits</b> pay inflation in proportion
       to vote latency, and because the inflation pool is ~8x the movable one, even a small movable share could
       <b>rival the fee channel</b>. It is unmeasured here (see objection 4), so treat the two coloured slivers
       as the measured floor of what speed can move, not the ceiling.</p>
     <div class="card comp">
       <div>
-        <div class="row-label"><span>All validator revenue</span><span class="tot" id="totFull">—</span></div>
+        <div class="row-label"><span>All validator revenue</span><span class="tot" id="totFull">, </span></div>
         <div class="stack" id="stackFull"></div>
       </div>
       <div>
-        <div class="row-label"><span>The performance-movable pool, on its own</span><span class="tot" id="totMov">—</span></div>
+        <div class="row-label"><span>The performance-movable pool, on its own</span><span class="tot" id="totMov">, </span></div>
         <div class="stack" id="stackMov"></div>
       </div>
       <p class="caption" id="caption"></p>
@@ -255,23 +255,23 @@
     <p class="sub" id="sweepSub"></p>
     <div class="knobs">
       <div class="knob">
-        <div class="kh"><span class="kn">κ — compressible share</span><span class="kv" id="kaV">25%</span></div>
+        <div class="kh"><span class="kn">κ (compressible share)</span><span class="kv" id="kaV">25%</span></div>
         <input type="range" id="kaR" min="0" max="100" step="1" value="25" aria-label="compressible share">
         <p class="kd">Share of the observed first-shred→completed window that is actually network time a
           faster layer could remove. The rest is the leader's own emission span, which no transport touches.
-          <b>Unidentified from one vantage point</b> — every dollar scales linearly in κ.</p>
+          <b>Unidentified from one vantage point</b>: every dollar scales linearly in κ.</p>
       </div>
       <div class="knob">
-        <div class="kh"><span class="kn">θ — peer threshold</span><span class="kv" id="thV">67%</span></div>
+        <div class="kh"><span class="kn">θ (peer threshold)</span><span class="kv" id="thV">67%</span></div>
         <input type="range" id="thR" min="5" max="100" step="1" value="67" aria-label="peer threshold">
         <p class="kd">Share of stake that must receive on the overlay before a delayed block still roots.
-          67% is Solana's supermajority — a sharp reading. The true knee is lower, since non-overlay nodes
+          67% is Solana's supermajority, a sharp reading. The true knee is lower, since non-overlay nodes
           have slack; the skip hazard would pin it.</p>
       </div>
       <div class="knob">
-        <div class="kh"><span class="kn">φ — genuinely new share</span><span class="kv" id="phV">0%</span></div>
-        <input type="range" id="phR" min="0" max="50" step="1" value="0" aria-label="genuinely new share">
-        <p class="kd">Share of the gain that is new value rather than pulled from the next slot — it sets the
+        <div class="kh"><span class="kn">φ (net-new share)</span><span class="kv" id="phV">0%</span></div>
+        <input type="range" id="phR" min="0" max="50" step="1" value="0" aria-label="net-new share">
+        <p class="kd">Share of the gain that is new value rather than pulled from the next slot, it sets the
           floor at saturation. Near zero for pure delay on 400ms slots: a missed transaction lands ~400ms
           later, it does not vanish.</p>
       </div>
@@ -287,7 +287,7 @@
       <div class="chart">
         <h3>Network-wide uplift</h3>
         <p class="ch-sub">All adopters combined. More adopters multiply the base, but each one's gain
-          decays — so the total peaks mid-sweep and returns to zero at saturation.</p>
+          decays, so the total peaks mid-sweep and returns to zero at saturation.</p>
         <svg id="chB" viewBox="0 0 560 200" role="img" aria-label="Network-wide uplift against adoption"></svg>
       </div>
     </div>
@@ -296,18 +296,18 @@
 
   <section class="method">
     <p class="eyebrow">Methodology · counterfactuals · robustness</p>
-    <h2>How this was measured — and what could break it</h2>
+    <h2>How this was measured, and what could break it</h2>
     <div class="card" style="margin:18px 0 26px;border-left:3px solid var(--tips)">
       <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink);font-weight:640">
         Read this before the numbers: this is a weaker study than the Ethereum one, and here is exactly how.</p>
       <p style="margin:0;font-size:13px;color:var(--ink-2);line-height:1.65">
         This is the Ethereum propagation harness ported in <b>preliminary</b> form. Every axis of evidence
         quality is a tier below its predecessor, and the gap is not cosmetic:
-        <b>one Geyser vantage point</b> instead of a sentry network — so κ, the compressible share of the
+        <b>one Geyser vantage point</b> instead of a sentry network, so κ, the compressible share of the
         observed window, is not identified at all;
-        <b>an estimated slope on realised outcomes</b> instead of a measured relay bid curve — so the delay
+        <b>an estimated slope on realised outcomes</b> instead of a measured relay bid curve, so the delay
         price is confounded by demand and is an upper bound, not a price;
-        <b>an assumed skip risk</b> instead of a measured orphan hazard — so the cost half of the delay trade
+        <b>an assumed skip risk</b> instead of a measured orphan hazard, so the cost half of the delay trade
         is asserted rather than priced;
         and <b>hours of data</b> instead of a 216k-slot panel. Each gap has a specific closer: a second
         independent vantage identifies κ; an instrument orthogonal to demand (spillover congestion, shred-loss
@@ -323,10 +323,10 @@
     <div class="mgrid">
       <div class="mcard">
         <h3>1 · Data collection</h3>
-        <p><b>Propagation — and its central weakness.</b> One node in Frankfurt subscribes to a Yellowstone
+        <p><b>Propagation, and its central weakness.</b> One node in Frankfurt subscribes to a Yellowstone
           Geyser gRPC slot-status stream. Per slot I log the server timestamp of
           <code>SLOT_FIRST_SHRED_RECEIVED</code> and <code>SLOT_COMPLETED</code>. Both stamps share a clock,
-          so path delay cancels in the difference — but that cuts both ways: <b>it cancels the network transit
+          so path delay cancels in the difference, but that cuts both ways: <b>it cancels the network transit
           I want to measure</b>, leaving a window dominated by the leader's own shred-emission span, which no
           transport can compress. So this is a <b>streaming window, not transit</b>. Only κ of it is
           compressible, κ is not identified from one vantage point, and it is a slider above.</p>
@@ -334,7 +334,7 @@
           slot. Leader fees = the block-meta <code>Fee</code> reward (100% of priority + 50% of base fees,
           post-SIMD-0096). <b>Operators</b> = validators union-find'd by shared vote-withdrawer or website;
           <code>getLeaderSchedule</code> maps each slot to its leader and 4-slot window position.</p>
-        <p id="mSample">Sample: — of continuous capture.</p>
+        <p id="mSample">Sample: pending render.</p>
       </div>
       <div class="mcard">
         <h3>2 · From milliseconds to dollars</h3>
@@ -343,20 +343,20 @@
           <b>later</b> at unchanged skip risk, sweeping up more late-arriving revenue.
           Value/slot = (dRevenue/dms) × Δ, summed over the tips and fees channels, × the operator's
           leader-slots per year.</p>
-        <p>dRevenue/dms is the <b>within-leader-window</b> slope of revenue on sealing lateness —
+        <p>dRevenue/dms is the <b>within-leader-window</b> slope of revenue on sealing lateness , 
           how much later a block completed than its window position predicts. Comparing a leader's own four
           consecutive slots holds its stake, hardware, geography and near-term load fixed.</p>
       </div>
       <div class="mcard">
         <h3>3 · The counterfactual, stated</h3>
         <p>"<b>6×</b>" is a <b>free parameter, not a Solana measurement</b>. Optimum's published 6× is an
-          RLNC overlay measured on Ethereum's Hoodi testnet against a gossipsub baseline — a different
+          RLNC overlay measured on Ethereum's Hoodi testnet against a gossipsub baseline, a different
           protocol on a different chain. Firedancer (a client) and DoubleZero (private fibre) are different
-          categories again. Nobody has published a 6× for Solana shred propagation, so treat it as an input. It also carries the asterisk from the Ethereum study: that 6× was measured against a gossipsub baseline on Hoodi, whose transit ran roughly twice mainnet's — an elevated baseline flatters the multiple.</p>
-        <p>It applies <b>only to the compressible share κ</b> of the observed window — the leader's own
+          categories again. Nobody has published a 6× for Solana shred propagation, so treat it as an input. It also carries the asterisk from the Ethereum study: that 6× was measured against a gossipsub baseline on Hoodi, whose transit ran roughly twice mainnet's, an elevated baseline flatters the multiple.</p>
+        <p>It applies <b>only to the compressible share κ</b> of the observed window, the leader's own
           emission span is a choice, not a network cost, and no transport removes it.</p>
         <p>It <b>holds fixed</b> skip risk and everything a leader can't change by networking. It
-          <b>assumes</b> the leader re-tunes its sealing to actually spend the saved budget — a behavioural
+          <b>assumes</b> the leader re-tunes its sealing to actually spend the saved budget, a behavioural
           change; a passive install earns far less. Read the dollars as an <b>order of magnitude</b>, priced
           at a fixed SOL value, not a quote.</p>
       </div>
@@ -369,35 +369,35 @@
     <div class="infer" id="infer"></div>
 
     <h3 class="mh">What can stand against the data</h3>
-    <p class="mnote">The objections I take seriously, each with its current status — stated before anyone
+    <p class="mnote">The objections I take seriously, each with its current status, stated before anyone
       else can raise them.</p>
     <ol class="rows" id="threats">
-      <li><div class="lab"><span class="tag">Demand simultaneity</span><span class="pill open">open</span></div><div class="body"><b>The biggest problem, and why the slope is an upper bound.</b> Within a window, a slot completes later largely <b>because more transactions arrived and got packed</b> — and more transactions mechanically means more fees. A demand shock causes later completion AND higher revenue jointly, so what I estimate is closer to <b>'busy slots pay more'</b> than 'an exogenous millisecond causes revenue'. Window fixed effects hold the leader's stake, hardware and geography fixed; they cannot hold load fixed slot-to-slot. Compute units enter as a control, but CU is the <b>mediator</b> (packing is how delay earns), so it under- or over-corrects rather than solving it. Cluster-robust SEs and the wild bootstrap fix inference on the slope; they do nothing about what the slope <b>is</b>. This is a genuine <b>downgrade from the Ethereum study</b>, where dV/dt came from relay bid traces — an ex-ante auction price, clean of realisation confounds. Closing it needs an instrument orthogonal to demand: congestion spilling over from a different leader, network-level shred-loss events, or position-1 slots following a skipped predecessor.</div></li>
-      <li><div class="lab"><span class="tag">The window is not transit</span><span class="pill open">open</span></div><div class="body"><b>Why κ exists.</b> COMPLETED−FIRST_SHRED shares a clock, so path delay cancels — which also cancels the network transit it was meant to capture. What remains is mostly the <b>leader's own shred-emission span</b>, which no transport compresses. Applying a network speedup to all of it (as the first version of this page did, implicitly κ=100%) contradicts the stated principle that publication timing is not compressible, and inflates every dollar. Only the differential component (path jitter, repair and FEC rounds) is compressible. Separating the two needs leader-side emission timestamps or a multi-vantage sighting spread; one node provides neither.</div></li>
-      <li><div class="lab"><span class="tag">Single vantage point</span><span class="pill open">open</span></div><div class="body">Everything is measured at <b>one</b> Geyser node, not an independent multi-region fleet, so there is no cross-validation and leader geography contaminates the level of the window. Same-clock differencing removes the constant path delay but not the differential component (route changes, congestion drift, my node's own load across the streaming window). The Ethereum study took a sentry median across vantage points; this is n=1. A second independent provider is the top open item — and it is what would identify κ.</div></li>
-      <li><div class="lab"><span class="tag">Vote credits not measured</span><span class="pill open">open</span></div><div class="body">Solana built <b>Timely Vote Credits</b> (SIMD-0033) specifically to reward vote latency: a vote earns max(1, 16 − max(0, latency − 2)) credits, and inflation is paid in proportion to credits. Dismissing the protocol's own latency-incentive channel in a study about the value of latency is a real gap. The <b>bound</b>: a validator already landing votes within the 2-slot grace earns the full 16 and gains nothing from being faster; one improving from 3 slots to 2 gains 1/16 = 6.25% of its inflation. Since inflation dwarfs fees, even a small movable share rivals the fee channel — so this is not safe to wave off. It is measurable from vote-transaction latency on-chain and is the first thing I would add.</div></li>
-      <li><div class="lab"><span class="tag">Skip risk assumed, not measured</span><span class="pill open">open</span></div><div class="body">The delay budget is spent 'at unchanged skip risk' by <b>assumption</b>. On Ethereum the orphan-hazard curve was the honest half of the trade — the measured cost of delaying. Here the cost side is asserted, and with 17 dead forks observed the hazard cannot yet be fit. A delay budget without a measured hazard is half a model, and it is the half that made the Ethereum version credible. It is also what would pin θ.</div></li>
-      <li><div class="lab"><span class="tag">Fixed transaction pool</span><span class="pill open">open</span></div><div class="body">The delay gain is drawn from a pool roughly fixed over any short window: a slot that seals later absorbs fees that would otherwise land in the <b>next</b> slot — a transfer, not creation. Each per-operator bar is a <b>lone-adopter</b> bound; the combined total is <b>not</b> additive network value. The sweep above models this as (1 − α) decay, with φ setting whatever floor survives saturation.</div></li>
-      <li><div class="lab"><span class="tag">A Solana-native lever?</span><span class="pill open">open</span></div><div class="body">Ethereum proposers make a discrete publication decision against a 4s deadline. Solana leaders stream shreds continuously inside a PoH-paced 400ms window. The claimed lever — extend packing into the window's tail before emitting the final shreds — is real but narrower, and it is fair to ask whether the delay-budget abstraction survives the port intact or whether it has been carried over from a scheduler that has the knob in a different form. I have not established the leader-side mechanism, only the reduced-form association.</div></li>
-      <li><div class="lab"><span class="tag">Inference clusters one way</span><span class="pill ok">addressed</span></div><div class="body">Congestion shocks cluster in <b>time</b> across leaders — the same minute hits everyone — so leader-only clustering could understate the errors. <b>I ran the fix</b> (Cameron–Gelbach–Miller two-way, leader × hour). <span id="twoWay">Result pending the next run.</span></div></li>
-      <li><div class="lab"><span class="tag">Operator clustering heuristic</span><span class="pill open">open</span></div><div class="body">Operators are union-found by shared vote-withdrawer or website. Its error mode is <b>false merges</b>: a shared custodian or a hosting provider's site could fuse unrelated operators into one. It also under-groups anyone using per-node cold withdrawers with no published site — so concentration here is a lower bound, never an over-count.</div></li>
+      <li><div class="lab"><span class="tag">Demand simultaneity</span><span class="pill open">open</span></div><div class="body"><b>The biggest problem, and why the slope is an upper bound.</b> Within a window, a slot completes later largely <b>because more transactions arrived and got packed</b>: and more transactions mechanically means more fees. A demand shock causes later completion AND higher revenue jointly, so what I estimate is closer to <b>'busy slots pay more'</b> than 'an exogenous millisecond causes revenue'. Window fixed effects hold the leader's stake, hardware and geography fixed; they cannot hold load fixed slot-to-slot. Compute units enter as a control, but CU is the <b>mediator</b> (packing is how delay earns), so it under- or over-corrects rather than solving it. Cluster-robust SEs and the wild bootstrap fix inference on the slope; they do nothing about what the slope <b>is</b>. This is a genuine <b>downgrade from the Ethereum study</b>, where dV/dt came from relay bid traces, an ex-ante auction price, clean of realisation confounds. Closing it needs an instrument orthogonal to demand: congestion spilling over from a different leader, network-level shred-loss events, or position-1 slots following a skipped predecessor.</div></li>
+      <li><div class="lab"><span class="tag">The window is not transit</span><span class="pill open">open</span></div><div class="body"><b>Why κ exists.</b> COMPLETED−FIRST_SHRED shares a clock, so path delay cancels, which also cancels the network transit it was meant to capture. What remains is mostly the <b>leader's own shred-emission span</b>, which no transport compresses. Applying a network speedup to all of it (as the first version of this page did, implicitly κ=100%) contradicts the stated principle that publication timing is not compressible, and inflates every dollar. Only the differential component (path jitter, repair and FEC rounds) is compressible. Separating the two needs leader-side emission timestamps or a multi-vantage sighting spread; one node provides neither.</div></li>
+      <li><div class="lab"><span class="tag">Single vantage point</span><span class="pill open">open</span></div><div class="body">Everything is measured at <b>one</b> Geyser node, not an independent multi-region fleet, so there is no cross-validation and leader geography contaminates the level of the window. Same-clock differencing removes the constant path delay but not the differential component (route changes, congestion drift, my node's own load across the streaming window). The Ethereum study took a sentry median across vantage points; this is n=1. A second independent provider is the top open item, and it is what would identify κ.</div></li>
+      <li><div class="lab"><span class="tag">Vote credits not measured</span><span class="pill open">open</span></div><div class="body">Solana built <b>Timely Vote Credits</b> (SIMD-0033) specifically to reward vote latency: a vote earns max(1, 16 − max(0, latency − 2)) credits, and inflation is paid in proportion to credits. Dismissing the protocol's own latency-incentive channel in a study about the value of latency is a real gap. The <b>bound</b>: a validator already landing votes within the 2-slot grace earns the full 16 and gains nothing from being faster; one improving from 3 slots to 2 gains 1/16 = 6.25% of its inflation. Since inflation dwarfs fees, even a small movable share rivals the fee channel, so this is not safe to wave off. It is measurable from vote-transaction latency on-chain and is the first thing I would add.</div></li>
+      <li><div class="lab"><span class="tag">Skip risk assumed, not measured</span><span class="pill open">open</span></div><div class="body">The delay budget is spent 'at unchanged skip risk' by <b>assumption</b>. On Ethereum the orphan-hazard curve was the honest half of the trade, the measured cost of delaying. Here the cost side is asserted, and with 17 dead forks observed the hazard cannot yet be fit. A delay budget without a measured hazard is half a model, and it is the half that made the Ethereum version credible. It is also what would pin θ.</div></li>
+      <li><div class="lab"><span class="tag">Fixed transaction pool</span><span class="pill open">open</span></div><div class="body">The delay gain is drawn from a pool roughly fixed over any short window: a slot that seals later absorbs fees that would otherwise land in the <b>next</b> slot, a transfer, not creation. Each per-operator bar is a <b>lone-adopter</b> bound; the combined total is <b>not</b> additive network value. The sweep above models this as (1 − α) decay, with φ setting whatever floor survives saturation.</div></li>
+      <li><div class="lab"><span class="tag">A Solana-native lever?</span><span class="pill open">open</span></div><div class="body">Ethereum proposers make a discrete publication decision against a 4s deadline. Solana leaders stream shreds continuously inside a PoH-paced 400ms window. The claimed lever (extend packing into the window's tail before emitting the final shreds) is real but narrower, and it is fair to ask whether the delay-budget abstraction survives the port intact or whether it has been carried over from a scheduler that has the knob in a different form. I have not established the leader-side mechanism, only the reduced-form association.</div></li>
+      <li><div class="lab"><span class="tag">Inference clusters one way</span><span class="pill ok">addressed</span></div><div class="body">Congestion shocks cluster in <b>time</b> across leaders (the same minute hits everyone) so leader-only clustering could understate the errors. <b>I ran the fix</b> (Cameron-Gelbach-Miller two-way, leader × hour). <span id="twoWay">Result pending the next run.</span></div></li>
+      <li><div class="lab"><span class="tag">Operator clustering heuristic</span><span class="pill open">open</span></div><div class="body">Operators are union-found by shared vote-withdrawer or website. Its error mode is <b>false merges</b>: a shared custodian or a hosting provider's site could fuse unrelated operators into one. It also under-groups anyone using per-node cold withdrawers with no published site, so concentration here is a lower bound, never an over-count.</div></li>
       <li><div class="lab"><span class="tag">Magnitude is volatile</span><span class="pill open">open</span></div><div class="body">The fee slope moved ~15× between the 4-hour and 1-day runs, and the top-operator figure swung ~4×. The <b>direction</b> (fees > tips, positive) is stable; the <b>magnitude</b> is not. The daily re-estimate tracks whether it settles.</div></li>
       <li><div class="lab"><span class="tag">Behavioural assumption</span><span class="pill todo">to&nbsp;do</span></div><div class="body">The value requires leaders to actually re-tune sealing to spend the budget. A passive install earns far less. The framing is conditional on that behaviour change, and stated as such.</div></li>
       <li><div class="lab"><span class="tag">Fee = total, not priority</span><span class="pill ok">addressed</span></div><div class="body">The block-meta Fee reward mixes base + priority fees. Priority dominates in the busy periods that drive the estimate; base is a small, near-constant floor.</div></li>
-      <li><div class="lab"><span class="tag">Fixed inputs</span><span class="pill todo">to&nbsp;do</span></div><div class="body">6× is a free parameter, not a Solana measurement. SOL is priced as of the render timestamp in the header. Both scale the result linearly — swap either and every figure rescales.</div></li>
+      <li><div class="lab"><span class="tag">Fixed inputs</span><span class="pill todo">to&nbsp;do</span></div><div class="body">6× is a free parameter, not a Solana measurement. SOL is priced as of the render timestamp in the header. Both scale the result linearly, swap either and every figure rescales.</div></li>
     </ol>
 
     <h3 class="mh">How I show it's solid</h3>
-    <p class="mnote">The design and the checks that make the causal reading credible — what's already in
+    <p class="mnote">The design and the checks that make the causal reading credible, what's already in
       place and what's still owed.</p>
     <ol class="rows" id="checks">
       <li><div class="lab"><span class="tag">Within-window FE</span><span class="pill ok">addressed</span></div><div class="body">The core identification: comparing a leader's own four consecutive slots strips the cross-sectional confound (busy slots are both slower and richer). The gap between the confounded slope (t≈2.5) and the within-window slope is that bias, and it is large.</div></li>
       <li><div class="lab"><span class="tag">Cluster-robust + bootstrap</span><span class="pill ok">addressed</span></div><div class="body">Standard errors clustered by leader (650+ clusters), plus a restricted wild cluster bootstrap with Rademacher weights. The p-values above come from that empirical distribution, not a normal approximation that over-rejects.</div></li>
-      <li><div class="lab"><span class="tag">Placebo that fired</span><span class="pill ok">addressed</span></div><div class="body">The position design asks the naive question — do later slots in a leader's window earn more? It came back <b>significantly negative</b> (t −3.9), and I publish it. <b>Why that does not invalidate the main design:</b> position is not a clean proxy for delay, because slot 0 inherits the backlog accumulated across the leader handoff and later slots work a drained queue. That drain is a real nuisance structure — and it is exactly why the sealing variable is <b>defined as the residual from the position-implied schedule</b> (t_completed − window_start − position×400ms), so position is differenced out by construction. The fired placebo documents the nuisance the sealing design already removes, and kills the coarse "position = delay exposure" reading, which is why I do not use it. What it does not do is rescue the sealing slope from the demand confound in objection 1 — that remains open.</div></li>
-      <li><div class="lab"><span class="tag">No-op recovery</span><span class="pill ok">addressed</span></div><div class="body">By construction, at speedup = 1 the counterfactual reproduces the measured baseline exactly — a model that can't recover reality with the treatment off is untrustworthy everywhere.</div></li>
-      <li><div class="lab"><span class="tag">Full-range skip accounting</span><span class="pill ok">addressed</span></div><div class="body">Slots skipped outright never appear in the stream, so skips are counted against the full leader schedule — the skip rate isn't silently undercounted by only-what-I-saw.</div></li>
+      <li><div class="lab"><span class="tag">Placebo that fired</span><span class="pill ok">addressed</span></div><div class="body">The position design asks the naive question, do later slots in a leader's window earn more? It came back <b>significantly negative</b> (t −3.9), and I publish it. <b>Why that does not invalidate the main design:</b> position is not a clean proxy for delay, because slot 0 inherits the backlog accumulated across the leader handoff and later slots work a drained queue. That drain is a real nuisance structure, and it is exactly why the sealing variable is <b>defined as the residual from the position-implied schedule</b> (t_completed − window_start − position×400ms), so position is differenced out by construction. The fired placebo documents the nuisance the sealing design already removes, and kills the coarse "position = delay exposure" reading, which is why I do not use it. What it does not do is rescue the sealing slope from the demand confound in objection 1, that remains open.</div></li>
+      <li><div class="lab"><span class="tag">No-op recovery</span><span class="pill ok">addressed</span></div><div class="body">By construction, at speedup = 1 the counterfactual reproduces the measured baseline exactly, a model that can't recover reality with the treatment off is untrustworthy everywhere.</div></li>
+      <li><div class="lab"><span class="tag">Full-range skip accounting</span><span class="pill ok">addressed</span></div><div class="body">Slots skipped outright never appear in the stream, so skips are counted against the full leader schedule, the skip rate isn't silently undercounted by only-what-I-saw.</div></li>
       <li><div class="lab"><span class="tag">Second independent vantage</span><span class="pill todo">to&nbsp;do</span></div><div class="body">A non-HelloMoon node in another region, to measure the transit spread and cleanly separate transit from publication delay.</div></li>
-      <li><div class="lab"><span class="tag">Skip-hazard cap</span><span class="pill todo">to&nbsp;do</span></div><div class="body">P(dead-fork | transit) to bound how far the delay budget can be spent before a block is lost — currently underpowered; needs more days.</div></li>
+      <li><div class="lab"><span class="tag">Skip-hazard cap</span><span class="pill todo">to&nbsp;do</span></div><div class="body">P(dead-fork | transit) to bound how far the delay budget can be spent before a block is lost, currently underpowered; needs more days.</div></li>
       <li><div class="lab"><span class="tag">Longer panel</span><span class="pill open">open</span></div><div class="body">More continuous days for Channel-B power and a tighter confidence interval on the fee slope. Collection is ongoing; the page re-estimates daily.</div></li>
     </ol>
 
@@ -411,7 +411,7 @@
   const DATA = /*__DATA__*/{"network":{"inflation":52518,"fees":4717,"tips":1458},"operators":[],"price":150,"speedup":6,"spanHours":4,"tipSlope":0.00027,"feeSlope":0.00009}/*__END__*/;
   const N = DATA.network, PRICE = DATA.price;
   // kappa: compressible share of the observed window. Page-level because EVERY
-  // dollar — operator bars, hero, sweep — scales linearly in it.
+  // dollar (operator bars, hero, sweep) scales linearly in it.
   let KAPPA = 0.25;
   // THE PRE-REGISTERED RULE, APPLIED IN CODE: 'a slope indistinguishable from
   // zero means the corresponding value is too'. The wild bootstrap p is the
@@ -440,7 +440,7 @@
   const topOp = DATA.operators.reduce((a,b) => (b.up_tips_sol_yr+b.up_fees_sol_yr) > (a.up_tips_sol_yr+a.up_fees_sol_yr) ? b : a, DATA.operators[0]);
   if (topOp) {
     document.getElementById("hTop").textContent = usdC((topOp.up_tips_sol_yr*TIPS_ON+topOp.up_fees_sol_yr*FEES_ON)*KAPPA*PRICE);
-    document.getElementById("hTopName").textContent = clean(topOp.group).name + " — top of the table below.";
+    document.getElementById("hTopName").textContent = clean(topOp.group).name + ", top of the table below.";
   }
 
   // composition
@@ -461,20 +461,20 @@
     seg("fees", "Leader fees  " + (N.fees/mov*100).toFixed(0) + "%", N.fees, N.fees/mov*100, true),
     seg("tips", "Jito tips  " + (N.tips/mov*100).toFixed(0) + "%", N.tips, N.tips/mov*100, true));
   document.getElementById("caption").innerHTML =
-    "<b>Read:</b> inflation is ~" + (N.inflation/tot*100).toFixed(0) + "% of revenue but the wrong target — it's paid by "
+    "<b>Read:</b> inflation is ~" + (N.inflation/tot*100).toFixed(0) + "% of revenue but the wrong target, it's paid by "
     + "protocol schedule, not speed. The winnable pool is the " + (mov/tot*100).toFixed(0) + "% on the right, and inside it "
     + "<b>leader fees (" + (N.fees/mov*100).toFixed(0) + "%) outweigh Jito tips (" + (N.tips/mov*100).toFixed(0) + "%)</b>. "
-    + "Both are candidate delay-budget channels — but this chart shows revenue that <b>exists</b>, not revenue "
+    + "Both are candidate delay-budget channels, but this chart shows revenue that <b>exists</b>, not revenue "
     + "that responds to speed. Whether each one actually pays more when a block is sealed later is a separate, "
-    + "testable question, and it is what the next chart prices" + (TIPS_ON && FEES_ON ? "." : " — currently only "
+    + "testable question, and it is what the next chart prices" + (TIPS_ON && FEES_ON ? "." : ", currently only "
     + (FEES_ON ? "fees" : "tips") + " clears the significance bar, so only " + (FEES_ON ? "fees" : "tips")
     + " earns an uplift there.");
   document.getElementById("opSub").innerHTML =
-    "Extra revenue from spending the saved transit as sealing delay, at unchanged skip risk — split by channel. "
+    "Extra revenue from spending the saved transit as sealing delay, at unchanged skip risk, split by channel. "
     + "Priced at the pooled within-operator delay slope (tips <b>" + DATA.tipSlope.toFixed(5) + "</b>, fees <b>"
     + DATA.feeSlope.toFixed(5) + "</b> SOL per 100 ms), applied to each operator's own transit and leader-slot rate. "
     + "These are <b>lone-adopter</b> bounds: the gain is partly pulled from the next slot's transactions, so the "
-    + "combined total is not additive network value — see the methodology below."
+    + "combined total is not additive network value, see the methodology below."
     + ((!TIPS_ON || !FEES_ON) ? "<br><b>The pre-registered rule is binding here:</b> "
         + [!TIPS_ON ? "the Jito-tips channel prices at <b>$0</b> (wild-p "
             + (DATA.stats.tips.p).toFixed(3) + ", not distinct from zero)" : null,
@@ -482,18 +482,18 @@
             + (DATA.stats.fees.p).toFixed(3) + ", not distinct from zero)" : null]
           .filter(Boolean).join(" and ")
         + ", so it contributes nothing to the bars above. <b>That is a statement about the delay mechanism, not "
-        + "about the channel existing:</b> Jito tips are real, measured revenue — they are in the chart above at ~"
+        + "about the channel existing:</b> Jito tips are real, measured revenue, they are in the chart above at ~"
         + Math.round(N.tips).toLocaleString() + " SOL/day. What I cannot show is that <b>sealing later captures more "
         + "of them</b>, so the rule prices that uplift at zero rather than let an insignificant slope earn money. "
         + "A slope indistinguishable from zero means the value is too."
       : "");
   const _span = hrs >= 24 ? (hrs/24).toFixed(1) + " days" : "~" + Math.round(hrs) + " hours";
   document.getElementById("opNote").innerHTML =
-    "<b>Why these operators?</b> An operator is a group of validators run by one entity — clustered on-chain "
+    "<b>Why these operators?</b> An operator is a group of validators run by one entity, clustered on-chain "
     + "by shared treasury key (vote-account withdrawer) or website; the starting pool is every staked validator. "
     + "The <b>" + DATA.operators.length + "</b> shown here are those whose nodes were scheduled as leader and "
-    + "produced at least <b>200 blocks</b> during the " + _span + " capture window — in effect a stake floor, since "
-    + "leader slots scale with stake — then ranked by modelled 6× uplift. Operators that produced fewer blocks, or "
+    + "produced at least <b>200 blocks</b> during the " + _span + " capture window (in effect a stake floor, since "
+    + "leader slots scale with stake) then ranked by modelled 6× uplift. Operators that produced fewer blocks, or "
     + "weren't leader in the window, are excluded; the clustering and its limits are detailed in the methodology below.";
 
   // operator chart
@@ -528,7 +528,7 @@
       const val = document.createElement("span"); val.className = "val"; val.textContent = usd(r.total);
       track.append(tb, fb, val); row.append(track); opsEl.append(row);
     }
-    // combined total across the operators shown — its own full-width scale
+    // combined total across the operators shown, its own full-width scale
     const T = rows.reduce((s,r) => ({ tips: s.tips+r.tips, fees: s.fees+r.fees, total: s.total+r.total }), {tips:0,fees:0,total:0});
     const trow = document.createElement("div"); trow.className = "op total";
     trow.innerHTML = `<div class="name">All ${rows.length} shown<span class="n">· combined</span></div>`;
@@ -553,21 +553,21 @@
     const windowMs = DATA.medianTransitMs || 350;                    // observed first-shred -> completed span
     // KAPPA. The observed window is dominated by the leader's own emission span; the
     // common network path largely cancels in the subtraction. Only kappa of it is
-    // compressible network time. Unidentified at n=1 vantage — hence a knob, not a number.
+    // compressible network time. Unidentified at n=1 vantage, hence a knob, not a number.
     const deltaMs = () => windowMs * KAPPA * (1 - 1 / DATA.speedup); // ms of budget bought
     const uMaxOf = () => Math.max(0, dRev) * deltaMs();              // SOL per adopter-slot at a -> 0
     // THE RAMP. mump2p/RLNC is a coded overlay running in shadow mode alongside
     // gossip: a delayed block only reaches on time the stake that can RECEIVE on
     // the overlay. A Solana block needs >=2/3 of stake to vote for it to root, so
-    // below theta the delay cannot be spent at all — the benefit is two-sided.
+    // below theta the delay cannot be spent at all, the benefit is two-sided.
     // Both knobs are ASSUMPTIONS, exposed rather than buried:
     //   theta = the peer threshold (ramp knee); phi = the share of the gain that is
-    //   genuinely new rather than pulled forward, which sets the floor at saturation.
+    //   net-new rather than pulled forward, which sets the floor at saturation.
     //   u(a) = u_max * min(1, a/theta) * [phi + (1-phi)(1-a)]
     let THETA = 0.67, PHI = 0;
     const ramp = a => Math.min(1, a / THETA);
     const decay = a => PHI + (1 - PHI) * (1 - a);
-    // per-adopter $/yr per 1% of stake, and network total $/yr — with and without the ramp
+    // per-adopter $/yr per 1% of stake, and network total $/yr, with and without the ramp
     const perRamp = a => uMaxOf() * ramp(a) * decay(a) * 0.01 * slotsYr * PRICE;
     const perFlat = a => uMaxOf() * decay(a) * 0.01 * slotsYr * PRICE;
     const netRamp = a => a * uMaxOf() * ramp(a) * decay(a) * slotsYr * PRICE;
@@ -642,12 +642,12 @@
       document.getElementById("kaV").textContent = Math.round(KAPPA * 100) + "%";
       document.getElementById("sweepNote").innerHTML =
         "<b>The bootstrap trap.</b> With the ramp, the first adopter earns <b>" + fmt(perRamp(0.01)) + "/yr</b> per 1% "
-        + "of stake — against <b>" + fmt(perFlat(0)) + "</b> if the layer worked unilaterally. Nobody rationally goes "
+        + "of stake, against <b>" + fmt(perFlat(0)) + "</b> if the layer worked unilaterally. Nobody rationally goes "
         + "first, so the network cannot climb to θ where the product starts paying. Per-adopter value peaks at "
         + fmt(perRamp(aPk)) + " at " + Math.round(aPk * 100) + "% adoption; network value peaks at " + fmt(netRamp(nPk))
         + "/yr at " + Math.round(nPk * 100) + "%, versus " + fmt(uMaxOf() * slotsYr * PRICE) + " implied by naively "
-        + "summing lone-adopter bars. At saturation the network keeps <b>" + fmt(netRamp(1)) + "/yr</b> — the φ floor, "
-        + "zero unless some of the flow is genuinely new. <b>Every figure here scales linearly in κ</b> ("
+        + "summing lone-adopter bars. At saturation the network keeps <b>" + fmt(netRamp(1)) + "/yr</b>: the φ floor, "
+        + "zero unless some of the flow is net-new. <b>Every figure here scales linearly in κ</b> ("
         + Math.round(KAPPA * 100) + "%): the delay budget is only " + deltaMs().toFixed(0) + "ms of the "
         + windowMs.toFixed(0) + "ms observed window. <b>Which curve applies depends on the product:</b> a coded "
         + "overlay (mump2p) or a dedicated fabric needs both ends, so the ramp holds; a faster client "
@@ -661,10 +661,10 @@
     document.getElementById("sweepSub").innerHTML =
       "Two forces act as adoption rises. <b>Cannibalisation:</b> the delay gain is pulled from the next slot, so once "
       + "other leaders run the layer they drain the pool first. <b>The peer ramp:</b> a coded overlay runs alongside "
-      + "gossip, so a delayed block only reaches on time the stake that can receive on the overlay — below that "
+      + "gossip, so a delayed block only reaches on time the stake that can receive on the overlay, below that "
       + "threshold the delay cannot be spent safely at all. Together: "
       + "<b>u(a) = u_max × min(1, a/θ) × [φ + (1 − φ)(1 − a)]</b>. Neither θ nor φ is measured here, so both are "
-      + "sliders rather than a number I am pretending to know — drag them and watch how much they carry. The dashed "
+      + "sliders rather than a number I am pretending to know, drag them and watch how much they carry. The dashed "
       + "line drops the ramp entirely, for the unilateral case.";
 
   })();
@@ -682,7 +682,7 @@
       if (!s || s.slope == null) return `<div class="cell"><p class="k">${label}</p><div class="val">not yet estimated</div></div>`;
       const sig = (s.p != null && s.p < 0.05);
       const verdict = s.p == null ? "" :
-        `<span class="verdict" style="color:${sig ? 'var(--fees)' : 'var(--muted)'}">${sig ? '✓ significant' : '— not distinct from 0'}</span>`;
+        `<span class="verdict" style="color:${sig ? 'var(--fees)' : 'var(--muted)'}">${sig ? '✓ significant' : 'not distinct from 0'}</span>`;
       const p = s.p == null ? "n/a" : s.p.toFixed(3);
       return `<div class="cell"><p class="k">${label}</p><div class="val">${s.slope>=0?'+':''}${s.slope.toFixed(5)} SOL/100ms<br>t ${s.t>=0?'+':''}${s.t.toFixed(2)} · wild-p ${p} ${verdict}</div></div>`;
     };
@@ -694,7 +694,7 @@
     
     
     document.getElementById("disclaimer").innerHTML =
-      "<b>Bottom line.</b> This is a counterfactual for a product that isn't deployed: transmission is not 6× faster today, and the dollar figures are conditional on the fee-delay slope being real and on leaders re-tuning to capture it. The robust finding is the <b>direction</b> — that the propagation premium on Solana lives in priority fees, not Jito MEV tips, and that the honest within-operator effect is a fraction of the confounded cross-section. The magnitude will keep moving; every figure here regenerates from the live pipeline each day.";
+      "<b>Bottom line.</b> This is a counterfactual for a product that isn't deployed: transmission is not 6× faster today, and the dollar figures are conditional on the fee-delay slope being real and on leaders re-tuning to capture it. The robust finding is the <b>direction</b>: that the propagation premium on Solana lives in priority fees, not Jito MEV tips, and that the honest within-operator effect is a fraction of the confounded cross-section. The magnitude will keep moving; every figure here regenerates from the live pipeline each day.";
   })();
 
   // tooltip

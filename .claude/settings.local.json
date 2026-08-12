@@ -368,7 +368,15 @@
       "Bash(scp -q src/estimators/channel_c.py src/estimators/inference.py frankfurt:/home/ubuntu/solana-optimum/src/estimators/)",
       "Bash(node --check /tmp/t16.js)",
       "Bash(node --check /tmp/t17.js)",
-      "Bash(node --check /tmp/s12.js)"
+      "Bash(node --check /tmp/s12.js)",
+      "Bash(cp site/index.html /tmp/index.bak)",
+      "Bash(rm -f scratch_revenue_fragment.html)",
+      "Bash(cat >/tmp/xtips.sh *)",
+      "Bash(cat >/tmp/avail.sh *)",
+      "Bash(cat >/tmp/twoday.sh *)",
+      "Bash(node --check /tmp/tv.js)",
+      "Bash(node --check /tmp/sf.js)",
+      "Bash(cat >/tmp/cap.sh *)"
     ],
     "additionalDirectories": [
       "/Users/brian/src/LeeroyChainkins/optimum",

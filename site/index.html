@@ -63,7 +63,7 @@
 
   <div class="warn"><strong>Every dollar figure on this page is a modelled counterfactual, not revenue.</strong>
     mump2p is not deployed on Ethereum mainnet; nobody is earning any of this today. Figures show what an
-    operator <em>would</em> gain if a propagation accelerator delivering the stated speedup were live —
+    operator would gain if a propagation accelerator delivering the stated speedup were live —
     and, for the dominant MEV channel, only if the operator also re-tunes its block-publication timing.</div>
 
   <div class="tiles">
@@ -78,7 +78,7 @@
      mainnet — is <strong>impossible</strong>: all seven partner operators were named in a single
      press release (2025-06-24), the product never left testnet, and two of the seven never
      publicly claimed adoption at all. There is no staggering and no treatment in mainnet data.</p>
-  <p>But mump2p <em>did</em> deploy on the <span class="chip t"></span><strong>Hoodi</strong> testnet
+  <p>But mump2p <strong>did</strong> deploy on the <span class="chip t"></span><strong>Hoodi</strong> testnet
      ("rolling out this summer"; first vendor results 2025-09-23). So we ran the honest version:
      487 network-days of daily propagation physics, Hoodi against
      <span class="chip c"></span><strong>Sepolia</strong> — same clients, same forks, no mump2p —
@@ -105,7 +105,7 @@
         (−56%, 2025-09-29) is matched three days later on the untreated control — harder (−72%) and
         cleaner (r² 0.84 vs 0.34). It is a common shock (the Fusaka client-release window plus sentry
         churn), not a treatment effect. Every clean break in eight months belongs to the network
-        <em>without</em> mump2p.</li>
+        <strong>without</strong> mump2p.</li>
     <li><strong>During the deployment window the treated network got worse.</strong> Hoodi's transit
         tripled Aug 1 – Oct 1 in a clean square pulse while the control stayed flat — with stable sentry
         composition, so it is not an observation artifact. We cannot attribute the degradation to any
@@ -118,7 +118,7 @@
         (95.9% → 77.4% → 40.5% across the deadline), 2.1% of blocks arrive late — more than double
         mainnet's 0.93% — and the attestation floor is ~20× worse than mainnet.</li>
   </ul>
-  <p>This is <em>no evidence of effect</em>, not proof of none — their own methodology says blocks
+  <p>This is <strong>no evidence of effect</strong>, not proof of none — their own methodology says blocks
      propagated "through both mump2p and Gossipsub simultaneously" (shadow mode), which predicts
      exactly this null. But for a product whose pitch is propagation speed, leaving no visible trace
      on its only deployed network is the most load-bearing fact on this page.</p>
@@ -141,13 +141,13 @@
   </table></div>
 
   <figure><img src="dose_response.png" alt="Correct head vote share by block arrival time with the 4 second deadline marked; lower panel shows slot counts per bin on a log scale">
-  <figcaption>The cliff sits exactly at the spec deadline. The density panel shows the effect lives in a thin tail — which is why <em>average</em> latency is the wrong KPI.</figcaption></figure>
+  <figcaption>The cliff sits exactly at the spec deadline. The density panel shows the effect lives in a thin tail — which is why <strong>average</strong> latency is the wrong KPI.</figcaption></figure>
 
   <p>Three facts that reframe the product:</p>
   <ul>
     <li><strong>61% of head-vote misses happen on blocks that arrived on time</strong> — they are nodes
         in the propagation tail. The attester benefit of a faster transport is being pulled out of the
-        tail on <em>every</em> block, not rescuing rare late ones.</li>
+        tail on <strong>every</strong> block, not rescuing rare late ones.</li>
     <li><strong>Late blocks are published late, not transported slowly.</strong> Late blocks' median
         publication is 3,656 ms (vs 1,811 ms normal); 18% were published after the deadline already.
         Even an infinitely fast network rescues only ~80% of them; 2× rescues 1.5%.</li>
@@ -157,7 +157,7 @@
   </ul>
 
   <h2>3 · What adopting it would be worth (mainnet counterfactual)</h2>
-  <p>Four channels, priced from measured quantities. Only network <em>transit</em> (~331 ms for the
+  <p>Four channels, priced from measured quantities. Only network transit (~331 ms for the
      median node) is compressible — most of arrival time is the proposer deliberately waiting, which
      no transport removes. Totals use <code>A + max(B,C) + D</code>: B and C are mutually exclusive
      uses of the same saved milliseconds.</p>
@@ -172,7 +172,7 @@
 
   <p><strong>~92% of the value is Channel C.</strong> Measured from relay bids, a block's value nearly
      doubles across the slot (0.027 → 0.051 ETH) and plateaus at ~3.5s. Optimum is not selling
-     throughput; it is selling <em>delay budget</em> — and only 5.8% of proposals currently capture
+     throughput; it is selling <strong>delay budget</strong> — and only 5.8% of proposals currently capture
      the plateau safely, so the headroom is real. Per named partner, at the vendor's own 6×:</p>
 
   <div class="tablewrap"><table>
@@ -188,7 +188,7 @@
   </table></div>
   <p style="font-size:.8rem">Assumptions: ETH $1,805.50 · post-Pectra set (40.72M ETH / 880,550 validators, avg 46.2 ETH)
      · 500 keys/node for D · scenarios at 3× and 2× run ~$27 and ~$21 per validator/yr. Channel C pays
-     <em>only</em> if the operator re-tunes publication timing; install-and-change-nothing earns ~$2–3.</p>
+     <strong>only</strong> if the operator re-tunes publication timing; install-and-change-nothing earns ~$2–3.</p>
 
   <h2>4 · The adoption curve has a sweet spot</h2>
   <p>Channel C needs receivers (a proposer can only delay safely once ~40% of attesters get blocks fast
@@ -208,10 +208,10 @@
     <li>The seven named partners (16.8% of the network) sit <strong>below the sweet spot</strong> —
         recruiting more of their competitors would make each of them richer, up to ~40%.</li>
     <li>The adopt-vs-not spread saturates at ~$32/validator and never decays: late adoption is bought
-        to <em>stop bleeding</em>, not to gain. At 100%, the MEV channel is fully cannibalised and only
+        to <strong>stop bleeding</strong>, not to gain. At 100%, the MEV channel is fully cannibalised and only
         the public goods remain (~$3.30/validator).</li>
     <li>Universal adoption doesn't bank the saved milliseconds — it spends them: every proposer moves
-        to the wire, and the network gets faster <em>and more fragile</em> simultaneously. The durable
+        to the wire, and the network gets faster <strong>and more fragile</strong> simultaneously. The durable
         social value is protocol headroom (more blobs, shorter slots), which accrues to L2s and users,
         not operators.</li>
   </ul>
@@ -233,7 +233,7 @@
 
   <p><strong>Mainnet's median node is already near the floor.</strong> At 331 ms typical transit,
      gossipsub on mainnet is nearly as fast as the overlay claims to be — the headline 6× exists
-     only against slow baselines. What survives the transfer is <em>tail compression</em>: the p90
+     only against slow baselines. What survives the transfer is <strong>tail compression</strong>: the p90
      spread (976 ms → floor) that a proposer must cover before spending delay budget. Priced against
      the 214k-slot mainnet panel:</p>
 
@@ -248,7 +248,7 @@
   <p style="font-size:.8rem"><strong>Carried caveat:</strong> the 150 ms input is the vendor's
      gateway-level measurement, captured during the window when Hoodi's own gossipsub was at its
      study-period worst, and our eight-month event study found no consensus-visible effect on Hoodi
-     at all. This extrapolation prices the claim <em>if it holds at validator clients on mainnet</em> —
+     at all. This extrapolation prices the claim <strong>if it holds at validator clients on mainnet</strong> —
      an upper bound built on an unverified input, not a measurement.</p>
 
   <h2>6 · Live counterfactual ticker</h2>
@@ -272,7 +272,7 @@
        the deadline discontinuity — sharp-RD estimates are bandwidth-sensitive and we lead with the dose-response
        instead. The 6× speedup is the vendor's testnet claim, not a mainnet measurement (hence 3× and 2× scenarios).
        Fleet node counts and the 40% safety threshold are stated assumptions. Hoodi results are
-       <em>no evidence of effect</em> under a shadow-mode deployment, not proof of none.</p>
+       <strong>no evidence of effect</strong> under a shadow-mode deployment, not proof of none.</p>
     <p>Generated from the <code>optimum</code> research pipeline · reproducible end-to-end from public data.</p>
   </div>
 </main>

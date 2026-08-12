@@ -126,12 +126,13 @@ def build_panel(data_dir: str, rpc_url: str, name: str = "titan",
                 window_hours: float | None = None) -> pd.DataFrame:
     """The joined per-slot panel, restricted to a trailing `window_hours` window.
 
-    The rolling window keeps the study to a fixed, recent horizon (default 24h =
-    one full day) and bounds the panel size, so the per-run bootstrap cost stays
+    The rolling window keeps the study to a fixed, recent horizon (default 48h =
+    two days — enough to average two full day/night cycles and stabilise the
+    slopes) and bounds the panel size, so the per-run bootstrap cost stays
     constant instead of growing with every day of collection.
     """
     if window_hours is None:
-        window_hours = float(os.getenv("WINDOW_HOURS", "24"))
+        window_hours = float(os.getenv("WINDOW_HOURS", "48"))
     sentry = load_sentry(data_dir, name)
     jito = load_jito(data_dir, name)
     fees = load_fees(data_dir, name)
